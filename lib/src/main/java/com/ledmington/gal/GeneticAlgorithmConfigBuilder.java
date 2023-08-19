@@ -15,10 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.gal.examples;
+package com.ledmington.gal;
 
-public final class Main {
-    public static void main(final String[] args) {
-        System.out.println("Hello world");
-    }
-}
+public final class GeneticAlgorithmConfigBuilder {}

@@ -1,21 +1,11 @@
 plugins {
     id 'java-library'
-    id 'com.github.ben-manes.versions' version '0.47.0'
 }
 
 repositories {
     mavenCentral()
 }
 
-ext.junitVersion = "5.10.0"
-
 dependencies {
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    // empty
 }

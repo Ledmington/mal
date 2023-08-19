@@ -10,12 +10,6 @@ dependencies {
     implementation project(':lib')
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 application {
     mainClass = "com.ledmington.gal.examples.Main"
 }
