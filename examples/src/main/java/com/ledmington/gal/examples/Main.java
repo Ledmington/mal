@@ -17,8 +17,50 @@
 */
 package com.ledmington.gal.examples;
 
+import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.ledmington.gal.GeneticAlgorithm;
+import com.ledmington.gal.GeneticAlgorithmConfig;
+import com.ledmington.gal.SerialGeneticAlgorithm;
+
 public final class Main {
     public static void main(final String[] args) {
-        System.out.println("Hello world");
+        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+        final String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !";
+        final String targetString = "I love Genetic Algorithms!";
+        final int length = targetString.length();
+        final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
+
+        final GeneticAlgorithm<String> ga = new SerialGeneticAlgorithm<>();
+        ga.run(GeneticAlgorithmConfig.<String>builder()
+                .populationSize(1000)
+                .survivalRate(0.4)
+                .maxGenerations(100)
+                .creation(() -> Stream.generate(randomChar)
+                        .limit(length)
+                        .map(Object::toString)
+                        .collect(Collectors.joining()))
+                .mutation(s -> {
+                    final int idx = rng.nextInt(0, length);
+                    return s.substring(0, idx) + randomChar.get() + s.substring(idx + 1, length);
+                })
+                .fitness(s -> {
+                    if (s.length() != length) {
+                        throw new IllegalArgumentException(
+                                String.format("Invalid length: was %d but should have been %d", s.length(), length));
+                    }
+                    int count = 0;
+                    for (int i = 0; i < s.length(); i++) {
+                        if (s.charAt(i) == targetString.charAt(i)) {
+                            count++;
+                        }
+                    }
+                    return (double) count;
+                })
+                .build());
     }
 }
