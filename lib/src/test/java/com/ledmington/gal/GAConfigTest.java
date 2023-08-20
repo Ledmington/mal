@@ -17,4 +17,68 @@
 */
 package com.ledmington.gal;
 
-public final class GAConfigTest {}
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+public final class GAConfigTest {
+
+    private GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<String> b;
+
+    @BeforeEach
+    public void setup() {
+        b = GeneticAlgorithmConfig.builder();
+    }
+
+    @Test
+    public void cannotBuildWithNoParameters() {
+        assertThrows(NullPointerException.class, () -> b.build());
+    }
+
+    @Test
+    public void invalidPopulationSize() {
+        assertThrows(IllegalArgumentException.class, () -> b.populationSize(-1));
+        assertThrows(IllegalArgumentException.class, () -> b.populationSize(0));
+        assertThrows(IllegalArgumentException.class, () -> b.populationSize(1));
+    }
+
+    @Test
+    public void invalidMaxGenerations() {
+        assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(-2));
+        assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(-1));
+    }
+
+    @Test
+    public void invalidSurvivalRate() {
+        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(-0.1));
+        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(0.0));
+        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(1.0));
+        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(1.1));
+    }
+
+    @Test
+    public void invalidIndividualSupplier() {
+        assertThrows(NullPointerException.class, () -> b.creation(null));
+    }
+
+    @Test
+    public void invalidMutationOperator() {
+        assertThrows(NullPointerException.class, () -> b.mutation(null));
+    }
+
+    @Test
+    public void invalidFitnessFunction() {
+        assertThrows(NullPointerException.class, () -> b.fitness(null));
+    }
+
+    @Test
+    public void fluentSyntax() {
+        b.survivalRate(0.5)
+                .populationSize(100)
+                .creation(() -> null)
+                .fitness(d -> 0.0)
+                .mutation(d -> d)
+                .build();
+    }
+}
