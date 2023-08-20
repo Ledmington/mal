@@ -23,8 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
+import java.util.stream.IntStream;
 
 public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
@@ -38,10 +40,24 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         this.rng = Objects.requireNonNull(rng);
     }
 
+    private X weightedChoose(final List<X> values, final Function<X, Double> weight) {
+        final double totalWeight = values.stream().mapToDouble(weight::apply).sum();
+        final double chosenWeight = rng.nextDouble(0.0, totalWeight);
+        double sum = 0.0;
+        for (int i = 0; i < values.size(); i++) {
+            if (sum >= chosenWeight) {
+                return values.get(i - 1);
+            }
+            sum += weight.apply(values.get(i));
+        }
+        return values.get(values.size() - 1);
+    }
+
     public void run(final GeneticAlgorithmConfig<X> config) {
         final List<X> population = new ArrayList<>(config.populationSize());
         final Map<X, Double> cachedScores = new HashMap<>();
         final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+        final int mutatingPopulation = (int) ((double) config.populationSize() * config.mutationRate());
 
         // initial creation
         for (int i = 0; i < config.populationSize(); i++) {
@@ -61,13 +77,29 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             System.out.printf(
                     "Best: '%s' (score: %.3f)\n", population.get(0).toString(), cachedScores.get(population.get(0)));
 
-            // elitism
+            // elitism: we keep only the top X% of the population (by ignoring it)
             int mutations = 0;
-            for (int i = survivingPopulation; i < config.populationSize(); i++) {
-                population.set(i, config.mutationOperator().apply(population.get(rng.nextInt(0, survivingPopulation))));
+            int randomCreations = 0;
+            int i;
+            // performing mutations
+            for (i = survivingPopulation; i < survivingPopulation + mutatingPopulation; i++) {
+                population.set(
+                        i,
+                        config.mutationOperator()
+                                .apply(weightedChoose(
+                                        IntStream.range(0, survivingPopulation)
+                                                .mapToObj(population::get)
+                                                .toList(),
+                                        cachedScores::get)));
                 mutations++;
             }
+            // adding random creations
+            for (; i < config.populationSize(); i++) {
+                population.set(i, config.creation().get());
+                randomCreations++;
+            }
             System.out.printf("Mutations applied : %,d\n", mutations);
+            System.out.printf("Random creations : %,d\n", randomCreations);
             System.out.println();
         }
     }

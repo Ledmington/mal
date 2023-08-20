@@ -19,6 +19,8 @@ package com.ledmington.gal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.function.Function;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +57,24 @@ public final class GAConfigTest {
         assertThrows(IllegalArgumentException.class, () -> b.survivalRate(0.0));
         assertThrows(IllegalArgumentException.class, () -> b.survivalRate(1.0));
         assertThrows(IllegalArgumentException.class, () -> b.survivalRate(1.1));
+    }
+
+    @Test
+    public void invalidMutationRate() {
+        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(-0.1));
+        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(0.0));
+        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.0));
+        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.1));
+    }
+
+    @Test
+    public void invalidSurvivalPlusMutationRates() {
+        b.creation(() -> null)
+                .mutation(Function.identity())
+                .fitness(s -> 0.0)
+                .survivalRate(0.3)
+                .mutationRate(0.9);
+        assertThrows(IllegalArgumentException.class, () -> b.build());
     }
 
     @Test
