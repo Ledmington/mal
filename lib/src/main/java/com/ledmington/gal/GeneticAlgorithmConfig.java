@@ -28,7 +28,8 @@ public record GeneticAlgorithmConfig<X>(
         int maxGenerations,
         Supplier<X> creation,
         Function<X, X> mutationOperator,
-        Function<X, Double> fitnessFunction) {
+        Function<X, Double> fitnessFunction,
+        Function<X, String> serializer) {
 
     public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
         return new GeneticAlgorithmConfigBuilder<>();
@@ -75,6 +76,7 @@ public record GeneticAlgorithmConfig<X>(
         private Supplier<X> randomCreation = null;
         private Function<X, X> mutationOperator = null;
         private Function<X, Double> fitnessFunction = null;
+        private Function<X, String> serializer = Object::toString;
 
         public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
             assertPopulationSizeIsValid(pop);
@@ -118,6 +120,12 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
+        public GeneticAlgorithmConfigBuilder<X> serializer(final Function<X, String> serializer) {
+            Objects.requireNonNull(serializer, "The serializer function cannot be null");
+            this.serializer = serializer;
+            return this;
+        }
+
         public GeneticAlgorithmConfig<X> build() {
             return new GeneticAlgorithmConfig<>(
                     populationSize,
@@ -126,7 +134,8 @@ public record GeneticAlgorithmConfig<X>(
                     maxGenerations,
                     randomCreation,
                     mutationOperator,
-                    fitnessFunction);
+                    fitnessFunction,
+                    serializer);
         }
     }
 
@@ -137,7 +146,8 @@ public record GeneticAlgorithmConfig<X>(
             int maxGenerations,
             Supplier<X> creation,
             Function<X, X> mutationOperator,
-            Function<X, Double> fitnessFunction) {
+            Function<X, Double> fitnessFunction,
+            Function<X, String> serializer) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
         this.mutationRate = assertMutationRateIsValid(mutationRate);
@@ -145,6 +155,7 @@ public record GeneticAlgorithmConfig<X>(
         this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
+        this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
 
         if (this.survivalRate + this.mutationRate > 1.0) {
             throw new IllegalArgumentException(String.format(

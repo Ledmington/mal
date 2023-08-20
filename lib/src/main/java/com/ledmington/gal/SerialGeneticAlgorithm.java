@@ -75,12 +75,14 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             population.sort(Comparator.comparing(cachedScores::get).reversed());
 
             System.out.printf(
-                    "Best: '%s' (score: %.3f)\n", population.get(0).toString(), cachedScores.get(population.get(0)));
+                    "Best: '%s' (score: %.3f)\n",
+                    config.serializer().apply(population.get(0)), cachedScores.get(population.get(0)));
 
             // elitism: we keep only the top X% of the population (by ignoring it)
             int mutations = 0;
             int randomCreations = 0;
             int i;
+
             // performing mutations
             for (i = survivingPopulation; i < survivingPopulation + mutatingPopulation; i++) {
                 population.set(
@@ -93,11 +95,13 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                                         cachedScores::get)));
                 mutations++;
             }
+
             // adding random creations
             for (; i < config.populationSize(); i++) {
                 population.set(i, config.creation().get());
                 randomCreations++;
             }
+
             System.out.printf("Mutations applied : %,d\n", mutations);
             System.out.printf("Random creations : %,d\n", randomCreations);
             System.out.println();

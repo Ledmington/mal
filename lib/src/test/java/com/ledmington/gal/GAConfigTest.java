@@ -93,6 +93,11 @@ public final class GAConfigTest {
     }
 
     @Test
+    public void invalidSerializer() {
+        assertThrows(NullPointerException.class, () -> b.serializer(null));
+    }
+
+    @Test
     public void fluentSyntax() {
         b.survivalRate(0.5)
                 .populationSize(100)
