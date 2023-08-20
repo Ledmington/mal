@@ -17,6 +17,6 @@
 */
 package com.ledmington.gal;
 
-public interface GeneticAlgorithm {
-    void run(GeneticAlgorithmConfig config);
+public interface GeneticAlgorithm<X> {
+    void run(final GeneticAlgorithmConfig<X> config);
 }

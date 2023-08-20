@@ -17,9 +17,109 @@
 */
 package com.ledmington.gal;
 
-public record GeneticAlgorithmConfig() {
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-    public static GeneticAlgorithmConfigBuilder builder() {
-        return new GeneticAlgorithmConfigBuilder();
+public record GeneticAlgorithmConfig<X>(
+        int populationSize,
+        double survivalRate,
+        int maxGenerations,
+        Supplier<X> creation,
+        Function<X, X> mutationOperator,
+        Function<X, Double> fitnessFunction) {
+
+    public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
+        return new GeneticAlgorithmConfigBuilder<T>();
+    }
+
+    private static int assertPopulationSizeIsValid(int pop) {
+        if (pop < 2) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid population size: needs to be >= 2 but was %d", pop));
+        }
+        return pop;
+    }
+
+    private static int assertMaxGenerationsIsValid(int generations) {
+        if (generations < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid max generations: needs to be >= 0 but was %d", generations));
+        }
+        return generations;
+    }
+
+    private static double assertSurvivalRateIsValid(double rate) {
+        if (rate <= 0.0 || rate >= 1.0) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid survival rate: needs to be > 0 and < 1 but was %f", rate));
+        }
+        return rate;
+    }
+
+    public static final class GeneticAlgorithmConfigBuilder<X> {
+
+        private int populationSize = 100;
+        private double survivalRate = 0.5;
+        private int maxGenerations = 100;
+        private Supplier<X> randomCreation = null;
+        private Function<X, X> mutationOperator = null;
+        private Function<X, Double> fitnessFunction = null;
+
+        public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
+            assertPopulationSizeIsValid(pop);
+            populationSize = pop;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> survivalRate(double rate) {
+            assertSurvivalRateIsValid(rate);
+            survivalRate = rate;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> maxGenerations(int generations) {
+            assertMaxGenerationsIsValid(generations);
+            maxGenerations = generations;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> creation(final Supplier<X> creation) {
+            Objects.requireNonNull(creation, "The creation function cannot be null");
+            randomCreation = creation;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> mutation(final Function<X, X> mutation) {
+            Objects.requireNonNull(mutation, "The mutation operator cannot be null");
+            mutationOperator = mutation;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> fitness(final Function<X, Double> fitness) {
+            Objects.requireNonNull(fitness, "The fitness function cannot be null");
+            fitnessFunction = fitness;
+            return this;
+        }
+
+        public GeneticAlgorithmConfig<X> build() {
+            return new GeneticAlgorithmConfig<X>(
+                    populationSize, survivalRate, maxGenerations, randomCreation, mutationOperator, fitnessFunction);
+        }
+    }
+
+    public GeneticAlgorithmConfig(
+            int populationSize,
+            double survivalRate,
+            int maxGenerations,
+            Supplier<X> creation,
+            Function<X, X> mutationOperator,
+            Function<X, Double> fitnessFunction) {
+        this.populationSize = assertPopulationSizeIsValid(populationSize);
+        this.survivalRate = assertSurvivalRateIsValid(survivalRate);
+        this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
+        this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
+        this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
+        this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
     }
 }
