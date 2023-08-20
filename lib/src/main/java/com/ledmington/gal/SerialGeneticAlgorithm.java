@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.IntStream;
@@ -38,19 +37,6 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
     public SerialGeneticAlgorithm(final RandomGenerator rng) {
         this.rng = Objects.requireNonNull(rng);
-    }
-
-    private X weightedChoose(final List<X> values, final Function<X, Double> weight) {
-        final double totalWeight = values.stream().mapToDouble(weight::apply).sum();
-        final double chosenWeight = rng.nextDouble(0.0, totalWeight);
-        double sum = 0.0;
-        for (int i = 0; i < values.size(); i++) {
-            if (sum >= chosenWeight) {
-                return values.get(i - 1);
-            }
-            sum += weight.apply(values.get(i));
-        }
-        return values.get(values.size() - 1);
     }
 
     public void run(final GeneticAlgorithmConfig<X> config) {
@@ -88,11 +74,12 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 population.set(
                         i,
                         config.mutationOperator()
-                                .apply(weightedChoose(
+                                .apply(Utils.weightedChoose(
                                         IntStream.range(0, survivingPopulation)
                                                 .mapToObj(population::get)
                                                 .toList(),
-                                        cachedScores::get)));
+                                        cachedScores::get,
+                                        rng)));
                 mutations++;
             }
 
