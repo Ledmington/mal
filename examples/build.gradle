@@ -13,3 +13,5 @@ dependencies {
 application {
     mainClass = "com.ledmington.gal.examples.Main"
 }
+
+javadoc.enabled = false
