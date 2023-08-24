@@ -23,6 +23,8 @@ import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public final class GAConfigTest {
 
@@ -67,14 +69,18 @@ public final class GAConfigTest {
         assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.1));
     }
 
-    @Test
-    public void invalidSurvivalPlusMutationRates() {
+    @ParameterizedTest
+    @ValueSource(doubles = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99})
+    public void invalidCrossoverPlusMutationRates(double mutation) {
+        final double crossover = 0.3;
         b.creation(() -> null)
                 .mutation(Function.identity())
                 .fitness(s -> 0.0)
-                .survivalRate(0.3)
-                .mutationRate(0.9);
-        assertThrows(IllegalArgumentException.class, () -> b.build());
+                .crossoverRate(crossover)
+                .mutationRate(mutation);
+        if (crossover + mutation > 1.0) {
+            assertThrows(IllegalArgumentException.class, () -> b.build());
+        }
     }
 
     @Test

@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 public record GeneticAlgorithmConfig<X>(
         int populationSize,
         double survivalRate,
+        double crossoverRate,
         double mutationRate,
         int maxGenerations,
         Supplier<X> creation,
@@ -59,6 +60,14 @@ public record GeneticAlgorithmConfig<X>(
         return rate;
     }
 
+    private static double assertCrossoverRateIsValid(double rate) {
+        if (rate <= 0.0 || rate >= 1.0) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid crossover rate: needs to be > 0 and < 1 but was %f", rate));
+        }
+        return rate;
+    }
+
     private static double assertMutationRateIsValid(double rate) {
         if (rate <= 0.0 || rate >= 1.0) {
             throw new IllegalArgumentException(
@@ -71,6 +80,7 @@ public record GeneticAlgorithmConfig<X>(
 
         private int populationSize = 100;
         private double survivalRate = 0.5;
+        private double crossoverRate = 0.5;
         private double mutationRate = 0.4;
         private int maxGenerations = 100;
         private Supplier<X> randomCreation = null;
@@ -87,6 +97,12 @@ public record GeneticAlgorithmConfig<X>(
         public GeneticAlgorithmConfigBuilder<X> survivalRate(double rate) {
             assertSurvivalRateIsValid(rate);
             survivalRate = rate;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> crossoverRate(double rate) {
+            assertCrossoverRateIsValid(rate);
+            crossoverRate = rate;
             return this;
         }
 
@@ -130,6 +146,7 @@ public record GeneticAlgorithmConfig<X>(
             return new GeneticAlgorithmConfig<>(
                     populationSize,
                     survivalRate,
+                    crossoverRate,
                     mutationRate,
                     maxGenerations,
                     randomCreation,
@@ -142,6 +159,7 @@ public record GeneticAlgorithmConfig<X>(
     public GeneticAlgorithmConfig(
             int populationSize,
             double survivalRate,
+            double crossoverRate,
             double mutationRate,
             int maxGenerations,
             Supplier<X> creation,
@@ -150,6 +168,7 @@ public record GeneticAlgorithmConfig<X>(
             Function<X, String> serializer) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
+        this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
         this.mutationRate = assertMutationRateIsValid(mutationRate);
         this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
         this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
@@ -157,10 +176,10 @@ public record GeneticAlgorithmConfig<X>(
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
 
-        if (this.survivalRate + this.mutationRate > 1.0) {
+        if (this.crossoverRate + this.mutationRate > 1.0) {
             throw new IllegalArgumentException(String.format(
-                    "survivalRate + mutationRate must be >= 0 and <= 1, but was %f",
-                    this.survivalRate + this.mutationRate));
+                    "crossoverRate + mutationRate must be >= 0 and <= 1, but was %f",
+                    this.crossoverRate + this.mutationRate));
         }
     }
 }
