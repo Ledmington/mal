@@ -18,6 +18,7 @@
 package com.ledmington.gal;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,6 +29,7 @@ public record GeneticAlgorithmConfig<X>(
         double mutationRate,
         int maxGenerations,
         Supplier<X> creation,
+        BiFunction<X, X, X> crossoverOperator,
         Function<X, X> mutationOperator,
         Function<X, Double> fitnessFunction,
         Function<X, String> serializer) {
@@ -84,6 +86,7 @@ public record GeneticAlgorithmConfig<X>(
         private double mutationRate = 0.4;
         private int maxGenerations = 100;
         private Supplier<X> randomCreation = null;
+        private BiFunction<X, X, X> crossoverOperator = null;
         private Function<X, X> mutationOperator = null;
         private Function<X, Double> fitnessFunction = null;
         private Function<X, String> serializer = Object::toString;
@@ -124,6 +127,12 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
+        public GeneticAlgorithmConfigBuilder<X> crossover(final BiFunction<X, X, X> crossover) {
+            Objects.requireNonNull(crossover, "The crossover operator cannot be null");
+            crossoverOperator = crossover;
+            return this;
+        }
+
         public GeneticAlgorithmConfigBuilder<X> mutation(final Function<X, X> mutation) {
             Objects.requireNonNull(mutation, "The mutation operator cannot be null");
             mutationOperator = mutation;
@@ -150,6 +159,7 @@ public record GeneticAlgorithmConfig<X>(
                     mutationRate,
                     maxGenerations,
                     randomCreation,
+                    crossoverOperator,
                     mutationOperator,
                     fitnessFunction,
                     serializer);
@@ -163,6 +173,7 @@ public record GeneticAlgorithmConfig<X>(
             double mutationRate,
             int maxGenerations,
             Supplier<X> creation,
+            BiFunction<X, X, X> crossoverOperator,
             Function<X, X> mutationOperator,
             Function<X, Double> fitnessFunction,
             Function<X, String> serializer) {
@@ -172,6 +183,7 @@ public record GeneticAlgorithmConfig<X>(
         this.mutationRate = assertMutationRateIsValid(mutationRate);
         this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
         this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
+        this.crossoverOperator = Objects.requireNonNull(crossoverOperator, "The crossover operator cannot be null");
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");

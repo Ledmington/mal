@@ -74,6 +74,7 @@ public final class GAConfigTest {
     public void invalidCrossoverPlusMutationRates(double mutation) {
         final double crossover = 0.3;
         b.creation(() -> null)
+                .crossover((a, b) -> b)
                 .mutation(Function.identity())
                 .fitness(s -> 0.0)
                 .crossoverRate(crossover)
@@ -86,6 +87,11 @@ public final class GAConfigTest {
     @Test
     public void invalidIndividualSupplier() {
         assertThrows(NullPointerException.class, () -> b.creation(null));
+    }
+
+    @Test
+    public void invalidCrossoverOperator() {
+        assertThrows(NullPointerException.class, () -> b.crossover(null));
     }
 
     @Test
@@ -108,6 +114,7 @@ public final class GAConfigTest {
         b.survivalRate(0.5)
                 .populationSize(100)
                 .creation(() -> null)
+                .crossover((a, b) -> b)
                 .fitness(d -> 0.0)
                 .mutation(d -> d)
                 .build();

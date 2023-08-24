@@ -64,7 +64,7 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                     "Best: '%s' (score: %.3f)\n",
                     config.serializer().apply(population.get(0)), cachedScores.get(population.get(0)));
 
-            // elitism: we keep only the top X% of the population (by ignoring it)
+            // elitism: we keep only the top X% of the population (by not overwriting it)
             int mutations = 0;
             int randomCreations = 0;
             int i;

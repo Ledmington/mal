@@ -56,6 +56,7 @@ public abstract class GATest {
         ga.run(GeneticAlgorithmConfig.<String>builder()
                 .populationSize(populationSize)
                 .maxGenerations(0)
+                .crossover((a, b) -> b)
                 .mutation(Function.identity())
                 .fitness(s -> 0.0)
                 .creation(cs)
