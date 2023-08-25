@@ -82,4 +82,29 @@ public final class TestUtils {
                             first, w.apply(first), second, w.apply(second), count.get(first), count.get(second)));
         }
     }
+
+    @Test
+    public void negativeWeightsWork() {
+        final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        final Function<Integer, Double> w = x -> -(double) x;
+        final Map<Integer, Integer> count = new HashMap<>();
+        for (final Integer x : values) {
+            count.put(x, 0);
+        }
+
+        for (int i = 0; i < 10_000; i++) {
+            final Integer chosen = Utils.weightedChoose(values, w, rng);
+            count.put(chosen, count.get(chosen) + 1);
+        }
+
+        for (int i = 0; i < values.size() - 1; i++) {
+            final Integer first = values.get(i);
+            final Integer second = values.get(i + 1);
+            assertTrue(
+                    count.get(first) > count.get(second),
+                    String.format(
+                            "Value %d (with weight %f) appeared more often than value %d (with weight %f): %,d < %,d",
+                            second, w.apply(second), first, w.apply(first), count.get(second), count.get(first)));
+        }
+    }
 }

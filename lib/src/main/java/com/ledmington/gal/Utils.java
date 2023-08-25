@@ -26,14 +26,20 @@ public final class Utils {
 
     public static <X> X weightedChoose(
             final List<X> values, final Function<X, Double> weight, final RandomGenerator rng) {
-        final double totalWeight = values.stream().mapToDouble(weight::apply).sum();
+        final double minWeight =
+                values.stream().mapToDouble(weight::apply).min().orElseThrow();
+        final double maxWeight =
+                values.stream().mapToDouble(weight::apply).max().orElseThrow();
+        final Function<Double, Double> scaler = w -> (w - minWeight) / (maxWeight - minWeight);
+        final double totalWeight =
+                values.stream().mapToDouble(x -> scaler.apply(weight.apply(x))).sum();
         final double chosenWeight = rng.nextDouble(0.0, totalWeight);
         double sum = 0.0;
         for (int i = 0; i < values.size(); i++) {
             if (sum >= chosenWeight) {
                 return values.get(i - 1);
             }
-            sum += weight.apply(values.get(i));
+            sum += scaler.apply(weight.apply(values.get(i)));
         }
         return values.get(values.size() - 1);
     }
