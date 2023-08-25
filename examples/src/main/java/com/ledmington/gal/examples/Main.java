@@ -17,69 +17,34 @@
 */
 package com.ledmington.gal.examples;
 
-import java.util.function.Supplier;
-import java.util.random.RandomGenerator;
-import java.util.random.RandomGeneratorFactory;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.ledmington.gal.GeneticAlgorithm;
-import com.ledmington.gal.GeneticAlgorithmConfig;
-import com.ledmington.gal.SerialGeneticAlgorithm;
+import java.util.Map;
 
 public final class Main {
-    public static void main(final String[] args) {
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-        final String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !";
-        final String targetString = "I love Genetic Algorithms!";
-        final int length = targetString.length();
-        final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 
-        final GeneticAlgorithm<String> ga = new SerialGeneticAlgorithm<>();
-        ga.run(GeneticAlgorithmConfig.<String>builder()
-                .populationSize(1000)
-                .survivalRate(0.1)
-                .crossoverRate(0.7)
-                .mutationRate(0.01)
-                .maxGenerations(1000)
-                .creation(() -> Stream.generate(randomChar)
-                        .limit(length)
-                        .map(Object::toString)
-                        .collect(Collectors.joining()))
-                .crossover((a, b) -> {
-                    final StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < targetString.length(); i++) {
-                        final double choice = rng.nextDouble(0.0, 1.0);
-                        if (choice < 0.45) {
-                            // take char from parent A
-                            sb.append(a.charAt(i));
-                        } else if (choice < 0.9) {
-                            // take char from parent B
-                            sb.append(b.charAt(i));
-                        } else {
-                            // add random character
-                            sb.append(randomChar.get());
-                        }
-                    }
-                    return sb.toString();
-                })
-                .mutation(s -> {
-                    final int idx = rng.nextInt(0, length);
-                    return s.substring(0, idx) + randomChar.get() + s.substring(idx + 1, length);
-                })
-                .fitness(s -> {
-                    if (s.length() != length) {
-                        throw new IllegalArgumentException(
-                                String.format("Invalid length: was %d but should have been %d", s.length(), length));
-                    }
-                    int count = 0;
-                    for (int i = 0; i < s.length(); i++) {
-                        if (s.charAt(i) == targetString.charAt(i)) {
-                            count++;
-                        }
-                    }
-                    return (double) count;
-                })
-                .build());
+    private static final Map<String, Runnable> examples =
+            Map.of("GeneticTsp", GeneticTsp::new, "RandomString", RandomStrings::new);
+
+    private static void printAvailableExamples() {
+        System.out.println("These are the available examples:");
+        for (final String name : examples.keySet()) {
+            System.out.printf(" - %s\n", name);
+        }
+    }
+
+    public static void main(final String[] args) {
+        if (args.length == 0) {
+            printAvailableExamples();
+            System.out.println("\nRerun the program with the name of the example.");
+            System.exit(0);
+        }
+
+        final Runnable task = examples.get(args[0]);
+        if (task == null) {
+            System.out.printf("The examples '%s' does not exist.\n", args[0]);
+            printAvailableExamples();
+            System.exit(1);
+        }
+
+        task.run();
     }
 }
