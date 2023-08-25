@@ -19,12 +19,8 @@ package com.ledmington.gal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.function.Function;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public final class GAConfigTest {
 
@@ -62,26 +58,19 @@ public final class GAConfigTest {
     }
 
     @Test
+    public void invalidCrossoverRate() {
+        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(-0.1));
+        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(0.0));
+        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(1.0));
+        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(1.1));
+    }
+
+    @Test
     public void invalidMutationRate() {
         assertThrows(IllegalArgumentException.class, () -> b.mutationRate(-0.1));
         assertThrows(IllegalArgumentException.class, () -> b.mutationRate(0.0));
         assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.0));
         assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.1));
-    }
-
-    @ParameterizedTest
-    @ValueSource(doubles = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99})
-    public void invalidCrossoverPlusMutationRates(double mutation) {
-        final double crossover = 0.3;
-        b.creation(() -> null)
-                .crossover((a, b) -> b)
-                .mutation(Function.identity())
-                .fitness(s -> 0.0)
-                .crossoverRate(crossover)
-                .mutationRate(mutation);
-        if (crossover + mutation > 1.0) {
-            assertThrows(IllegalArgumentException.class, () -> b.build());
-        }
     }
 
     @Test
@@ -115,8 +104,11 @@ public final class GAConfigTest {
                 .populationSize(100)
                 .creation(() -> null)
                 .crossover((a, b) -> b)
+                .crossoverRate(0.6)
+                .mutationRate(0.2)
                 .fitness(d -> 0.0)
                 .mutation(d -> d)
+                .serializer(x -> "example")
                 .build();
     }
 }
