@@ -18,6 +18,7 @@
 package com.ledmington.gal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -110,6 +111,7 @@ public final class GAConfigTest {
                 .fitness(d -> 0.0)
                 .mutation(d -> d)
                 .serializer(x -> "example")
+                .quiet()
                 .build();
     }
 
@@ -124,10 +126,12 @@ public final class GAConfigTest {
                 .fitness(d -> 0.0)
                 .mutation(d -> d)
                 .serializer(x -> "example")
+                .quiet()
                 .build();
 
         assertEquals(100, c.populationSize());
         assertEquals(0.6, c.crossoverRate());
         assertEquals(0.2, c.mutationRate());
+        assertFalse(c.verbose());
     }
 }

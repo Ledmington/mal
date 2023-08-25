@@ -32,7 +32,8 @@ public record GeneticAlgorithmConfig<X>(
         BiFunction<X, X, X> crossoverOperator,
         Function<X, X> mutationOperator,
         Function<X, Double> fitnessFunction,
-        Function<X, String> serializer) {
+        Function<X, String> serializer,
+        boolean verbose) {
 
     public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
         return new GeneticAlgorithmConfigBuilder<>();
@@ -90,6 +91,7 @@ public record GeneticAlgorithmConfig<X>(
         private Function<X, X> mutationOperator = null;
         private Function<X, Double> fitnessFunction = null;
         private Function<X, String> serializer = Object::toString;
+        private boolean verbose = true;
 
         public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
             assertPopulationSizeIsValid(pop);
@@ -151,6 +153,16 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
+        public GeneticAlgorithmConfigBuilder<X> verbose() {
+            verbose = true;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> quiet() {
+            verbose = false;
+            return this;
+        }
+
         public GeneticAlgorithmConfig<X> build() {
             return new GeneticAlgorithmConfig<>(
                     populationSize,
@@ -162,7 +174,8 @@ public record GeneticAlgorithmConfig<X>(
                     crossoverOperator,
                     mutationOperator,
                     fitnessFunction,
-                    serializer);
+                    serializer,
+                    verbose);
         }
     }
 
@@ -176,7 +189,8 @@ public record GeneticAlgorithmConfig<X>(
             BiFunction<X, X, X> crossoverOperator,
             Function<X, X> mutationOperator,
             Function<X, Double> fitnessFunction,
-            Function<X, String> serializer) {
+            Function<X, String> serializer,
+            boolean verbose) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
         this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
@@ -187,5 +201,6 @@ public record GeneticAlgorithmConfig<X>(
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
+        this.verbose = verbose;
     }
 }

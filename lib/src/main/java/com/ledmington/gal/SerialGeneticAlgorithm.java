@@ -50,7 +50,11 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         }
 
         for (int currentGeneration = 0; currentGeneration < config.maxGenerations(); currentGeneration++) {
-            System.out.printf("Generation: %,d\n", currentGeneration);
+            if (config.verbose()) {
+                System.out.printf("Generation: %,d\n", currentGeneration);
+            }
+
+            // computing scores
             for (final X x : population) {
                 if (!cachedScores.containsKey(x)) {
                     cachedScores.put(x, config.fitnessFunction().apply(x));
@@ -59,9 +63,11 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
             population.sort(Comparator.comparing(cachedScores::get).reversed());
 
-            System.out.printf(
-                    "Best: '%s' (score: %.3f)\n",
-                    config.serializer().apply(population.get(0)), cachedScores.get(population.get(0)));
+            if (config.verbose()) {
+                System.out.printf(
+                        "Best: '%s' (score: %.3f)\n",
+                        config.serializer().apply(population.get(0)), cachedScores.get(population.get(0)));
+            }
 
             // The top X% gets copied directly into the new generation
             for (int i = 0; i < survivingPopulation; i++) {
@@ -102,10 +108,12 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 randomCreations++;
             }
 
-            System.out.printf("Crossovers performed : %,d\n", crossovers);
-            System.out.printf("Mutations applied : %,d\n", mutations);
-            System.out.printf("Random creations : %,d\n", randomCreations);
-            System.out.println();
+            if (config.verbose()) {
+                System.out.printf("Crossovers performed : %,d\n", crossovers);
+                System.out.printf("Mutations applied : %,d\n", mutations);
+                System.out.printf("Random creations : %,d\n", randomCreations);
+                System.out.println();
+            }
 
             if (population.size() != config.populationSize() || nextGeneration.size() != config.populationSize()) {
                 throw new IllegalStateException(String.format(

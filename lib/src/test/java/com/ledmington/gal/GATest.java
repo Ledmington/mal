@@ -89,6 +89,7 @@ public abstract class GATest {
                 .mutation(Function.identity())
                 .fitness(s -> 0.0)
                 .creation(cs)
+                .quiet()
                 .build());
         assertEquals(populationSize, cs.getCount());
     }
@@ -116,6 +117,7 @@ public abstract class GATest {
                 .mutation(cm)
                 .creation(cs)
                 .fitness(s -> (double) s.length())
+                .quiet()
                 .build());
 
         assertEquals(0, cco.getCount()); // zero crossovers
