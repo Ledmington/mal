@@ -63,12 +63,12 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                     "Best: '%s' (score: %.3f)\n",
                     config.serializer().apply(population.get(0)), cachedScores.get(population.get(0)));
 
-            int crossovers = 0;
-
             // The top X% gets copied directly into the new generation
             for (int i = 0; i < survivingPopulation; i++) {
                 nextGeneration.add(population.get(i));
             }
+
+            int crossovers = 0;
 
             // performing crossovers
             for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {

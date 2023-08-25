@@ -17,6 +17,7 @@
 */
 package com.ledmington.gal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -110,5 +111,23 @@ public final class GAConfigTest {
                 .mutation(d -> d)
                 .serializer(x -> "example")
                 .build();
+    }
+
+    @Test
+    public void fieldsGetSet() {
+        final GeneticAlgorithmConfig<String> c = b.survivalRate(0.5)
+                .populationSize(100)
+                .creation(() -> null)
+                .crossover((a, b) -> b)
+                .crossoverRate(0.6)
+                .mutationRate(0.2)
+                .fitness(d -> 0.0)
+                .mutation(d -> d)
+                .serializer(x -> "example")
+                .build();
+
+        assertEquals(100, c.populationSize());
+        assertEquals(0.6, c.crossoverRate());
+        assertEquals(0.2, c.mutationRate());
     }
 }
