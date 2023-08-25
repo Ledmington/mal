@@ -81,9 +81,9 @@ public record GeneticAlgorithmConfig<X>(
     public static final class GeneticAlgorithmConfigBuilder<X> {
 
         private int populationSize = 100;
-        private double survivalRate = 0.5;
-        private double crossoverRate = 0.5;
-        private double mutationRate = 0.4;
+        private double survivalRate = 0.1;
+        private double crossoverRate = 0.7;
+        private double mutationRate = 0.1;
         private int maxGenerations = 100;
         private Supplier<X> randomCreation = null;
         private BiFunction<X, X, X> crossoverOperator = null;
@@ -187,11 +187,5 @@ public record GeneticAlgorithmConfig<X>(
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
-
-        if (this.crossoverRate + this.mutationRate > 1.0) {
-            throw new IllegalArgumentException(String.format(
-                    "crossoverRate + mutationRate must be >= 0 and <= 1, but was %f",
-                    this.crossoverRate + this.mutationRate));
-        }
     }
 }
