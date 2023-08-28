@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public final class GAConfigTest {
 
@@ -98,6 +100,12 @@ public final class GAConfigTest {
     @Test
     public void invalidSerializer() {
         assertThrows(NullPointerException.class, () -> b.serializer(null));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0})
+    public void invalidPrintBest(int nBestToPrint) {
+        assertThrows(IllegalArgumentException.class, () -> b.printBest(nBestToPrint));
     }
 
     @Test

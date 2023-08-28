@@ -18,12 +18,19 @@
 package com.ledmington.gal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -123,5 +130,55 @@ public abstract class GATest {
         assertEquals(0, cco.getCount()); // zero crossovers
         assertEquals(0, cm.getCount()); // zero mutations
         assertEquals(maxPopulation * (generations + 1), cs.getCount()); // only random creations
+    }
+
+    @Test
+    public void ifQuietShouldPrintNothing() {
+        final PrintStream oldStdout = System.out;
+        System.setOut(new PrintStream(new OutputStream() {
+            public void write(int b) {
+                // reset the old stdout object to avoid bad stuff
+                System.setOut(oldStdout);
+                fail("This test was not supposed to print anything");
+            }
+        }));
+
+        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+
+        ga.run(GeneticAlgorithmConfig.<String>builder()
+                .creation(() -> String.valueOf(rng.nextInt()))
+                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+                .fitness(s -> (double) s.length())
+                .quiet()
+                .build());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3, 4, 5})
+    public void ifQuietShouldPrintNothing(final int nBestToPrint) {
+        final PrintStream oldStdout = System.out;
+        final StringBuilder stdout = new StringBuilder();
+        System.setOut(new PrintStream(new OutputStream() {
+            public void write(int b) {
+                stdout.append(Character.toString(b));
+            }
+        }));
+
+        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+
+        ga.run(GeneticAlgorithmConfig.<String>builder()
+                .maxGenerations(1)
+                .creation(() -> String.valueOf(rng.nextInt()))
+                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+                .fitness(s -> (double) s.length())
+                .printBest(nBestToPrint)
+                .build());
+
+        System.setOut(oldStdout);
+
+        // the algorithm prints at least one line for each individual plus one for the generation
+        assertTrue(stdout.toString().lines().count() >= nBestToPrint + 1);
     }
 }

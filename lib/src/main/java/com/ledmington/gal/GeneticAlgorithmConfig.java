@@ -33,7 +33,8 @@ public record GeneticAlgorithmConfig<X>(
         Function<X, X> mutationOperator,
         Function<X, Double> fitnessFunction,
         Function<X, String> serializer,
-        boolean verbose) {
+        boolean verbose,
+        int printBest) {
 
     public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
         return new GeneticAlgorithmConfigBuilder<>();
@@ -79,6 +80,14 @@ public record GeneticAlgorithmConfig<X>(
         return rate;
     }
 
+    private static int assertPrintBestIsValid(int nBestToPrint) {
+        if (nBestToPrint <= 0) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid nBestToPrint: must be > 0 but was %,d\n", nBestToPrint));
+        }
+        return nBestToPrint;
+    }
+
     public static final class GeneticAlgorithmConfigBuilder<X> {
 
         private int populationSize = 100;
@@ -92,6 +101,7 @@ public record GeneticAlgorithmConfig<X>(
         private Function<X, Double> fitnessFunction = null;
         private Function<X, String> serializer = Object::toString;
         private boolean verbose = true;
+        private int nBestToPrint = 1;
 
         public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
             assertPopulationSizeIsValid(pop);
@@ -163,6 +173,11 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
+        public GeneticAlgorithmConfigBuilder<X> printBest(final int nBestToPrint) {
+            this.nBestToPrint = assertPrintBestIsValid(nBestToPrint);
+            return this;
+        }
+
         public GeneticAlgorithmConfig<X> build() {
             return new GeneticAlgorithmConfig<>(
                     populationSize,
@@ -175,7 +190,8 @@ public record GeneticAlgorithmConfig<X>(
                     mutationOperator,
                     fitnessFunction,
                     serializer,
-                    verbose);
+                    verbose,
+                    nBestToPrint);
         }
     }
 
@@ -190,7 +206,8 @@ public record GeneticAlgorithmConfig<X>(
             Function<X, X> mutationOperator,
             Function<X, Double> fitnessFunction,
             Function<X, String> serializer,
-            boolean verbose) {
+            boolean verbose,
+            int printBest) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
         this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
@@ -202,5 +219,6 @@ public record GeneticAlgorithmConfig<X>(
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
         this.verbose = verbose;
+        this.printBest = assertPrintBestIsValid(printBest);
     }
 }

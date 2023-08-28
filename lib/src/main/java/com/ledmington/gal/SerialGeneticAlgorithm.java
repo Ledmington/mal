@@ -64,9 +64,11 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             population.sort(Comparator.comparing(cachedScores::get).reversed());
 
             if (config.verbose()) {
-                System.out.printf(
-                        "Best: '%s' (score: %.3f)\n",
-                        config.serializer().apply(population.get(0)), cachedScores.get(population.get(0)));
+                for (int i = 0; i < config.printBest(); i++) {
+                    System.out.printf(
+                            "N. %d: '%s' (score: %.3f)\n",
+                            i + 1, config.serializer().apply(population.get(i)), cachedScores.get(population.get(i)));
+                }
             }
 
             // The top X% gets copied directly into the new generation

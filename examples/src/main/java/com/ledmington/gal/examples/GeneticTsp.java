@@ -68,6 +68,7 @@ public final class GeneticTsp {
                 .survivalRate(0.2)
                 .mutationRate(0.2)
                 .crossoverRate(0.1)
+                .printBest(5)
                 .creation(() -> {
                     final int[] v = new int[nCities];
                     for (int i = 0; i < nCities; i++) {
