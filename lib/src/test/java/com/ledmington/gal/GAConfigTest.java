@@ -40,41 +40,34 @@ public final class GAConfigTest {
         assertThrows(NullPointerException.class, () -> b.build());
     }
 
-    @Test
-    public void invalidPopulationSize() {
-        assertThrows(IllegalArgumentException.class, () -> b.populationSize(-1));
-        assertThrows(IllegalArgumentException.class, () -> b.populationSize(0));
-        assertThrows(IllegalArgumentException.class, () -> b.populationSize(1));
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1})
+    public void invalidPopulationSize(int pop) {
+        assertThrows(IllegalArgumentException.class, () -> b.populationSize(pop));
     }
 
-    @Test
-    public void invalidMaxGenerations() {
-        assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(-2));
-        assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(-1));
+    @ParameterizedTest
+    @ValueSource(ints = {-2, -1})
+    public void invalidMaxGenerations(int gen) {
+        assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(gen));
     }
 
-    @Test
-    public void invalidSurvivalRate() {
-        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(-0.1));
-        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(0.0));
-        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(1.0));
-        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(1.1));
+    @ParameterizedTest
+    @ValueSource(doubles = {-0.1, 0.0, 1.0, 1.1})
+    public void invalidSurvivalRate(double sr) {
+        assertThrows(IllegalArgumentException.class, () -> b.survivalRate(sr));
     }
 
-    @Test
-    public void invalidCrossoverRate() {
-        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(-0.1));
-        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(0.0));
-        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(1.0));
-        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(1.1));
+    @ParameterizedTest
+    @ValueSource(doubles = {-0.1, 0.0, 1.0, 1.1})
+    public void invalidCrossoverRate(double cr) {
+        assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(cr));
     }
 
-    @Test
-    public void invalidMutationRate() {
-        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(-0.1));
-        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(0.0));
-        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.0));
-        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(1.1));
+    @ParameterizedTest
+    @ValueSource(doubles = {-0.1, 0.0, 1.0, 1.1})
+    public void invalidMutationRate(double mr) {
+        assertThrows(IllegalArgumentException.class, () -> b.mutationRate(mr));
     }
 
     @Test
