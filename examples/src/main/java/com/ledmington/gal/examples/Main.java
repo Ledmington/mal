@@ -18,11 +18,12 @@
 package com.ledmington.gal.examples;
 
 import java.util.Map;
+import java.util.Optional;
 
 public final class Main {
 
     private static final Map<String, Runnable> examples =
-            Map.of("GeneticTsp", GeneticTsp::new, "RandomString", RandomStrings::new);
+            Map.of("GeneticTsp", GeneticTsp::new, "RandomString", RandomStrings::new, "Knapsack", Knapsack::new);
 
     private static void printAvailableExamples() {
         System.out.println("These are the available examples:");
@@ -38,13 +39,15 @@ public final class Main {
             System.exit(0);
         }
 
-        final Runnable task = examples.get(args[0]);
-        if (task == null) {
+        final Optional<String> chosenExample = examples.keySet().stream()
+                .filter(k -> k.equalsIgnoreCase(args[0]))
+                .findFirst();
+        if (chosenExample.isEmpty()) {
             System.out.printf("The examples '%s' does not exist.\n", args[0]);
             printAvailableExamples();
             System.exit(1);
         }
 
-        task.run();
+        examples.get(chosenExample.orElseThrow()).run();
     }
 }
