@@ -22,7 +22,7 @@ import java.util.random.RandomGeneratorFactory;
 
 import com.ledmington.gal.GeneticAlgorithm;
 import com.ledmington.gal.GeneticAlgorithmConfig;
-import com.ledmington.gal.SerialGeneticAlgorithm;
+import com.ledmington.gal.ParallelGeneticAlgorithm;
 
 public final class Knapsack {
     public Knapsack() {
@@ -37,11 +37,12 @@ public final class Knapsack {
             values[i] = rng.nextDouble(0.1, 6.0);
         }
 
-        final GeneticAlgorithm<boolean[]> ga = new SerialGeneticAlgorithm<>();
+        final GeneticAlgorithm<boolean[]> ga = new ParallelGeneticAlgorithm<>();
 
         ga.run(GeneticAlgorithmConfig.<boolean[]>builder()
                 .populationSize(1000)
                 .maxGenerations(1000)
+                .printBest(5)
                 .survivalRate(0.1)
                 .crossoverRate(0.8)
                 .mutationRate(0.1)

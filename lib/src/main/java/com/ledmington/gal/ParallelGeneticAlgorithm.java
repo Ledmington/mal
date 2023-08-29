@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
@@ -201,6 +202,21 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             for (int i = 0; i < config.populationSize(); i++) {
                 nextGeneration.set(i, null);
             }
+        }
+
+        if (executor.isTerminated()) {
+            return;
+        }
+        if (!executor.isShutdown()) {
+            executor.shutdown();
+        }
+        try {
+            boolean terminated = executor.isTerminated();
+            while (!terminated) {
+                terminated = executor.awaitTermination(1, TimeUnit.HOURS);
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }
