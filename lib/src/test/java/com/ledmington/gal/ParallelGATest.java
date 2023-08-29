@@ -19,17 +19,38 @@ package com.ledmington.gal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.concurrent.Executors;
+import java.util.random.RandomGeneratorFactory;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-public final class SerialGATest extends GATest {
+public final class ParallelGATest extends GATest {
     @BeforeEach
     public void setup() {
-        ga = new SerialGeneticAlgorithm<>();
+        ga = new ParallelGeneticAlgorithm<>();
+    }
+
+    @Test
+    public void nullExecutor() {
+        assertThrows(
+                NullPointerException.class,
+                () -> new ParallelGeneticAlgorithm<String>(
+                        null, RandomGeneratorFactory.getDefault().create(System.nanoTime())));
     }
 
     @Test
     public void nullRandomGenerator() {
-        assertThrows(NullPointerException.class, () -> new SerialGeneticAlgorithm<>(null));
+        assertThrows(
+                NullPointerException.class,
+                () -> new ParallelGeneticAlgorithm<String>(Executors.newSingleThreadExecutor(), null));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {-2, -1, 0})
+    public void invalidThreads(int nThreads) {
+        assertThrows(IllegalArgumentException.class, () -> new ParallelGeneticAlgorithm<String>(nThreads));
     }
 }

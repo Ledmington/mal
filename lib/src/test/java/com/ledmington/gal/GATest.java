@@ -47,7 +47,7 @@ public abstract class GATest {
         private int count = 0;
 
         @Override
-        public String get() {
+        public synchronized String get() {
             count++;
             return "" + count;
         }
@@ -61,7 +61,7 @@ public abstract class GATest {
     static class CountingMutator implements Function<String, String> {
         private int count = 0;
 
-        public String apply(final String in) {
+        public synchronized String apply(final String in) {
             count++;
             return in;
         }
@@ -75,7 +75,7 @@ public abstract class GATest {
     static class CountingCrossoverOperator implements BiFunction<String, String, String> {
         private int count = 0;
 
-        public String apply(final String first, final String second) {
+        public synchronized String apply(final String first, final String second) {
             count++;
             return first;
         }
