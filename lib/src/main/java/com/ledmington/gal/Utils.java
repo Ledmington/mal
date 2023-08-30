@@ -18,6 +18,7 @@
 package com.ledmington.gal;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
 
@@ -26,21 +27,36 @@ public final class Utils {
 
     public static <X> X weightedChoose(
             final List<X> values, final Function<X, Double> weight, final RandomGenerator rng) {
-        final double minWeight =
-                values.stream().mapToDouble(weight::apply).min().orElseThrow();
-        final double maxWeight =
-                values.stream().mapToDouble(weight::apply).max().orElseThrow();
-        final Function<Double, Double> scaler = w -> (w - minWeight) / (maxWeight - minWeight);
-        final double totalWeight =
-                values.stream().mapToDouble(x -> scaler.apply(weight.apply(x))).sum();
-        final double chosenWeight = rng.nextDouble(0.0, totalWeight);
-        double sum = 0.0;
-        for (int i = 0; i < values.size(); i++) {
-            if (sum >= chosenWeight) {
-                return values.get(i - 1);
-            }
-            sum += scaler.apply(weight.apply(values.get(i)));
+        Objects.requireNonNull(values, "The list of values cannot be null");
+        Objects.requireNonNull(weight, "The weight function cannot be null");
+        Objects.requireNonNull(rng, "The RandomGenerator cannot be null");
+
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException("The list of values cannot be empty");
         }
+
+        final Function<X, Double> safeWeight = x -> {
+            final double result = weight.apply(x);
+            if (result < 0.0) {
+                throw new IllegalArgumentException(String.format(
+                        "Negative weights are not allowed: the object '%s' produced the weight %f",
+                        x.toString(), result));
+            }
+            return result;
+        };
+        final double totalWeight =
+                values.stream().mapToDouble(safeWeight::apply).sum();
+        final double chosenWeight = rng.nextDouble(0.0, totalWeight);
+
+        double sum = 0.0;
+        for (int i = 0; i < values.size() - 1; i++) {
+            final X ith_element = values.get(i);
+            sum += safeWeight.apply(ith_element);
+            if (sum >= chosenWeight) {
+                return ith_element;
+            }
+        }
+
         return values.get(values.size() - 1);
     }
 }
