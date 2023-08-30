@@ -53,7 +53,7 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         this.rng = Objects.requireNonNull(rng);
     }
 
-    private void waitAll(final List<Future<Void>> tasks) {
+    private void waitAll(final List<Future<?>> tasks) {
         tasks.forEach(x -> {
             try {
                 x.get();
@@ -70,7 +70,7 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         List<X> nextGeneration = new ArrayList<>(config.populationSize());
         final Map<X, Double> cachedScores = new ConcurrentHashMap<>();
         final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
-        final List<Future<Void>> tasks = new ArrayList<>(config.populationSize());
+        final List<Future<?>> tasks = new ArrayList<>(config.populationSize());
 
         // filling population with nulls
         for (int i = 0; i < config.populationSize(); i++) {
@@ -82,10 +82,8 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         for (int i = 0; i < config.populationSize(); i++) {
             final List<X> finalPopulation = population;
             final int finalI = i;
-            tasks.add(executor.submit(() -> {
-                finalPopulation.set(finalI, config.creation().get());
-                return null;
-            }));
+            tasks.add(executor.submit(
+                    () -> finalPopulation.set(finalI, config.creation().get())));
         }
 
         waitAll(tasks);
@@ -98,10 +96,8 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             // computing scores
             for (final X x : population) {
                 if (!cachedScores.containsKey(x)) {
-                    tasks.add(executor.submit(() -> {
-                        cachedScores.put(x, config.fitnessFunction().apply(x));
-                        return null;
-                    }));
+                    tasks.add(executor.submit(
+                            () -> cachedScores.put(x, config.fitnessFunction().apply(x))));
                 }
             }
 
@@ -140,7 +136,6 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                         finalNextGeneration.set(
                                 nextGenerationSize.getAndIncrement(),
                                 config.crossoverOperator().apply(firstParent, secondParent));
-                        return null;
                     }));
                     crossovers++;
                 }
@@ -155,11 +150,8 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
                     final List<X> finalNextGeneration = nextGeneration;
                     final int finalI = i;
-                    tasks.add(executor.submit(() -> {
-                        finalNextGeneration.set(
-                                finalI, config.mutationOperator().apply(finalNextGeneration.get(finalI)));
-                        return null;
-                    }));
+                    tasks.add(executor.submit(() -> finalNextGeneration.set(
+                            finalI, config.mutationOperator().apply(finalNextGeneration.get(finalI)))));
                     mutations++;
                 }
             }
@@ -171,12 +163,8 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             // adding random creations
             for (int i = 0; i < randomCreations; i++) {
                 final List<X> finalNextGeneration = nextGeneration;
-                tasks.add(executor.submit(() -> {
-                    finalNextGeneration.set(
-                            nextGenerationSize.getAndIncrement(),
-                            config.creation().get());
-                    return null;
-                }));
+                tasks.add(executor.submit(() -> finalNextGeneration.set(
+                        nextGenerationSize.getAndIncrement(), config.creation().get())));
             }
 
             waitAll(tasks);
