@@ -1,11 +1,21 @@
 plugins {
     id 'java-library'
-}
-
-repositories {
-    mavenCentral()
+    id 'info.solidsoft.pitest' version '1.9.11'
 }
 
 dependencies {
-    // empty
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
+        because("required for pitest")
+    }
+}
+
+pitest {
+    targetClasses.set(['com.ledmington.gal.*'])
+    targetTests.set(['com.ledmington.gal.*'])
+    pitestVersion = '1.14.4' //not needed when a default PIT version should be used
+    junit5PluginVersion = '1.2.0'
+    threads = 4
+    outputFormats.set(['HTML'])
+    verbose = true
+    timestampedReports = false
 }
