@@ -121,13 +121,13 @@ public final class GeneticTsp {
                     arr[j] = tmp;
                     return arr;
                 })
-                .fitness(arr -> {
+                .minimize(arr -> {
                     double s = 0.0;
                     for (int i = 0; i < nCities; i++) {
                         s += distances[arr[i]][arr[(i + 1) % nCities]];
                     }
                     // we return it inverted because it is a maximization algorithm for a minimization problem
-                    return -s;
+                    return s;
                 })
                 .serializer(arr -> {
                     final StringBuilder sb = new StringBuilder();

@@ -86,8 +86,13 @@ public final class GAConfigTest {
     }
 
     @Test
-    public void invalidFitnessFunction() {
-        assertThrows(NullPointerException.class, () -> b.fitness(null));
+    public void invalidMaximizeFunction() {
+        assertThrows(NullPointerException.class, () -> b.maximize(null));
+    }
+
+    @Test
+    public void invalidMinimizeFunction() {
+        assertThrows(NullPointerException.class, () -> b.minimize(null));
     }
 
     @Test
@@ -109,7 +114,7 @@ public final class GAConfigTest {
                 .crossover((a, b) -> b)
                 .crossoverRate(0.6)
                 .mutationRate(0.2)
-                .fitness(d -> 0.0)
+                .maximize(d -> 0.0)
                 .mutation(d -> d)
                 .serializer(x -> "example")
                 .quiet()
@@ -124,7 +129,7 @@ public final class GAConfigTest {
                 .crossover((a, b) -> b)
                 .crossoverRate(0.6)
                 .mutationRate(0.2)
-                .fitness(d -> 0.0)
+                .maximize(d -> 0.0)
                 .mutation(d -> d)
                 .serializer(x -> "example")
                 .quiet()

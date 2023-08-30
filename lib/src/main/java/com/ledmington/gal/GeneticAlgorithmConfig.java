@@ -17,6 +17,7 @@
 */
 package com.ledmington.gal;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -32,6 +33,7 @@ public record GeneticAlgorithmConfig<X>(
         BiFunction<X, X, X> crossoverOperator,
         Function<X, X> mutationOperator,
         Function<X, Double> fitnessFunction,
+        Comparator<Double> scoreComparator,
         Function<X, String> serializer,
         boolean verbose,
         int printBest) {
@@ -99,6 +101,7 @@ public record GeneticAlgorithmConfig<X>(
         private BiFunction<X, X, X> crossoverOperator = null;
         private Function<X, X> mutationOperator = null;
         private Function<X, Double> fitnessFunction = null;
+        private Comparator<Double> scoreComparator = null;
         private Function<X, String> serializer = Object::toString;
         private boolean verbose = true;
         private int nBestToPrint = 1;
@@ -151,9 +154,17 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
-        public GeneticAlgorithmConfigBuilder<X> fitness(final Function<X, Double> fitness) {
+        public GeneticAlgorithmConfigBuilder<X> maximize(final Function<X, Double> fitness) {
             Objects.requireNonNull(fitness, "The fitness function cannot be null");
             fitnessFunction = fitness;
+            scoreComparator = (a, b) -> -Double.compare(a, b);
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> minimize(final Function<X, Double> fitness) {
+            Objects.requireNonNull(fitness, "The fitness function cannot be null");
+            fitnessFunction = fitness;
+            scoreComparator = Double::compare;
             return this;
         }
 
@@ -189,6 +200,7 @@ public record GeneticAlgorithmConfig<X>(
                     crossoverOperator,
                     mutationOperator,
                     fitnessFunction,
+                    scoreComparator,
                     serializer,
                     verbose,
                     nBestToPrint);
@@ -205,6 +217,7 @@ public record GeneticAlgorithmConfig<X>(
             BiFunction<X, X, X> crossoverOperator,
             Function<X, X> mutationOperator,
             Function<X, Double> fitnessFunction,
+            Comparator<Double> scoreComparator,
             Function<X, String> serializer,
             boolean verbose,
             int printBest) {
@@ -217,6 +230,7 @@ public record GeneticAlgorithmConfig<X>(
         this.crossoverOperator = Objects.requireNonNull(crossoverOperator, "The crossover operator cannot be null");
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
+        this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
         this.verbose = verbose;
         this.printBest = assertPrintBestIsValid(printBest);

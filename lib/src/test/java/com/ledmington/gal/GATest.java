@@ -94,7 +94,7 @@ public abstract class GATest {
                 .maxGenerations(0)
                 .crossover((a, b) -> b)
                 .mutation(Function.identity())
-                .fitness(s -> 0.0)
+                .maximize(s -> 0.0)
                 .creation(cs)
                 .quiet()
                 .build());
@@ -123,7 +123,7 @@ public abstract class GATest {
                 .crossover(cco)
                 .mutation(cm)
                 .creation(cs)
-                .fitness(s -> (double) s.length())
+                .maximize(s -> (double) s.length())
                 .quiet()
                 .build());
 
@@ -149,7 +149,7 @@ public abstract class GATest {
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .fitness(s -> (double) s.length())
+                .maximize(s -> (double) s.length())
                 .quiet()
                 .build());
     }
@@ -172,7 +172,7 @@ public abstract class GATest {
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .fitness(s -> (double) s.length())
+                .maximize(s -> (double) s.length())
                 .printBest(nBestToPrint)
                 .build());
 

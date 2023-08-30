@@ -18,7 +18,6 @@
 package com.ledmington.gal;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 }
             }
 
-            population.sort(Comparator.comparing(cachedScores::get).reversed());
+            population.sort((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)));
 
             if (config.verbose()) {
                 for (int i = 0; i < config.printBest(); i++) {

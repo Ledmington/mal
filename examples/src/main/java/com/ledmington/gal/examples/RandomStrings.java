@@ -67,7 +67,7 @@ public final class RandomStrings {
                     final int idx = rng.nextInt(0, length);
                     return s.substring(0, idx) + randomChar.get() + s.substring(idx + 1, length);
                 })
-                .fitness(s -> {
+                .maximize(s -> {
                     if (s.length() != length) {
                         throw new IllegalArgumentException(
                                 String.format("Invalid length: was %d but should have been %d", s.length(), length));

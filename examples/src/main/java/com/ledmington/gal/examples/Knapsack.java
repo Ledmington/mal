@@ -116,7 +116,7 @@ public final class Knapsack {
 
                     return x;
                 })
-                .fitness(x -> {
+                .maximize(x -> {
                     double s = 0.0;
                     for (int i = 0; i < nItems; i++) {
                         if (x[i]) {
