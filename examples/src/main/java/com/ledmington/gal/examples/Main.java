@@ -22,8 +22,15 @@ import java.util.Optional;
 
 public final class Main {
 
-    private static final Map<String, Runnable> examples =
-            Map.of("GeneticTsp", GeneticTsp::new, "RandomString", RandomStrings::new, "Knapsack", Knapsack::new);
+    private static final Map<String, Runnable> examples = Map.of(
+            "GeneticTsp",
+            GeneticTsp::new,
+            "RandomString",
+            RandomStrings::new,
+            "Knapsack",
+            Knapsack::new,
+            "NeuralNetwork",
+            NeuralNetwork::new);
 
     private static void printAvailableExamples() {
         System.out.println("These are the available examples:");
