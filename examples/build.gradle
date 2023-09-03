@@ -7,11 +7,15 @@ static def path(final String ...s) {
     return String.join(File.separator, s)
 }
 
+static def getDate() {
+    return new Date().format('yyyyMMddHHmmss')
+}
+
 String appName = "gal-examples"
 String fatJarBaseName = "${appName}"
 String fatJarName = "${fatJarBaseName}.jar"
 String fatJarPath = path("${buildDir}", "libs", "${fatJarName}")
-String mainClassName = "com.ledmingotn.gal.examples.Main"
+String mainClassName = "com.ledmington.gal.examples.Main"
 
 repositories {
     mavenCentral()

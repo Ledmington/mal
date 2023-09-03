@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
@@ -71,14 +72,15 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
     protected int performCrossovers(final GeneticAlgorithmConfig<X> config) {
         int crossovers = 0;
+        final Supplier<X> weightedRandom = Utils.weightedChoose(population, cachedScores::get, rng);
 
         for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
             if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
                 // choose randomly two parents and perform a crossover
-                final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
+                final X firstParent = weightedRandom.get();
                 X secondParent;
                 do {
-                    secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
+                    secondParent = weightedRandom.get();
                 } while (firstParent.equals(secondParent));
                 nextGeneration.add(config.crossoverOperator().apply(firstParent, secondParent));
                 crossovers++;

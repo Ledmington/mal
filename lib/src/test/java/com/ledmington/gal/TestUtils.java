@@ -59,7 +59,7 @@ public final class TestUtils {
         final Function<Integer, Double> w = x -> 9.1 - x;
 
         assertTrue(IntStream.range(0, 100)
-                .map(x -> Utils.weightedChoose(values, w, rng))
+                .map(x -> Utils.weightedChoose(values, w, rng).get())
                 .filter(x -> values.get(0).equals(x))
                 .findAny()
                 .isPresent());
@@ -71,7 +71,7 @@ public final class TestUtils {
         final Function<Integer, Double> w = x -> (double) x;
 
         assertTrue(IntStream.range(0, 100)
-                .map(x -> Utils.weightedChoose(values, w, rng))
+                .map(x -> Utils.weightedChoose(values, w, rng).get())
                 .filter(x -> values.get(values.size() - 1).equals(x))
                 .findAny()
                 .isPresent());
@@ -87,7 +87,7 @@ public final class TestUtils {
         }
 
         for (int i = 0; i < 10_000; i++) {
-            final Integer chosen = Utils.weightedChoose(values, w, rng);
+            final Integer chosen = Utils.weightedChoose(values, w, rng).get();
             count.put(chosen, count.get(chosen) + 1);
         }
 
@@ -115,7 +115,8 @@ public final class TestUtils {
 
     @Test
     public void weightedChooseWithOneValue() {
-        assertEquals(123, Utils.weightedChoose(List.of(123), x -> (double) x, rng));
+        assertEquals(
+                123, Utils.weightedChoose(List.of(123), x -> (double) x, rng).get());
     }
 
     @Test

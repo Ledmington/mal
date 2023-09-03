@@ -56,5 +56,8 @@ public final class Main {
         }
 
         examples.get(chosenExample.orElseThrow()).run();
+
+        // needed for automatic termination of the executors
+        System.exit(0);
     }
 }

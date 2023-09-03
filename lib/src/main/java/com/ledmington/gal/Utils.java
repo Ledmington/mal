@@ -20,12 +20,13 @@ package com.ledmington.gal;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 public final class Utils {
     private Utils() {}
 
-    public static <X> X weightedChoose(
+    public static <X> Supplier<X> weightedChoose(
             final List<X> values, final Function<X, Double> weight, final RandomGenerator rng) {
         Objects.requireNonNull(values, "The list of values cannot be null");
         Objects.requireNonNull(weight, "The weight function cannot be null");
@@ -46,17 +47,20 @@ public final class Utils {
         };
         final double totalWeight =
                 values.stream().mapToDouble(safeWeight::apply).sum();
-        final double chosenWeight = rng.nextDouble(0.0, totalWeight);
 
-        double sum = 0.0;
-        for (int i = 0; i < values.size() - 1; i++) {
-            final X ith_element = values.get(i);
-            sum += safeWeight.apply(ith_element);
-            if (sum >= chosenWeight) {
-                return ith_element;
+        return () -> {
+            final double chosenWeight = rng.nextDouble(0.0, totalWeight);
+
+            double sum = 0.0;
+            for (int i = 0; i < values.size() - 1; i++) {
+                final X ith_element = values.get(i);
+                sum += safeWeight.apply(ith_element);
+                if (sum >= chosenWeight) {
+                    return ith_element;
+                }
             }
-        }
 
-        return values.get(values.size() - 1);
+            return values.get(values.size() - 1);
+        };
     }
 }
