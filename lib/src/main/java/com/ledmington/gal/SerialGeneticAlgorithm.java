@@ -25,9 +25,13 @@ import java.util.Objects;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
+public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
-    private final RandomGenerator rng;
+    protected final RandomGenerator rng;
+    protected List<X> population = null;
+    protected List<X> nextGeneration = null;
+    protected Map<X, Double> cachedScores = null;
+    protected int survivingPopulation = -1;
 
     public SerialGeneticAlgorithm() {
         this(RandomGeneratorFactory.getDefault().create(System.nanoTime()));
@@ -37,77 +41,112 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         this.rng = Objects.requireNonNull(rng);
     }
 
-    public void run(final GeneticAlgorithmConfig<X> config) {
-        List<X> population = new ArrayList<>(config.populationSize());
-        List<X> nextGeneration = new ArrayList<>(config.populationSize());
-        final Map<X, Double> cachedScores = new HashMap<>();
-        final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+    protected void resetState(final GeneticAlgorithmConfig<X> config) {
+        population = new ArrayList<>(config.populationSize());
+        nextGeneration = new ArrayList<>(config.populationSize());
+        cachedScores = new HashMap<>(config.populationSize());
+        survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+    }
 
-        // initial creation
+    protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
         for (int i = 0; i < config.populationSize(); i++) {
             population.add(i, config.creation().get());
         }
+    }
+
+    protected void computeScores(final GeneticAlgorithmConfig<X> config) {
+        for (final X x : population) {
+            if (!cachedScores.containsKey(x)) {
+                cachedScores.put(x, config.fitnessFunction().apply(x));
+            }
+        }
+    }
+
+    protected void elitism() {
+        cachedScores.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .limit(survivingPopulation)
+                .map(Map.Entry::getKey)
+                .forEach(x -> nextGeneration.add(x));
+    }
+
+    protected int performCrossovers(final GeneticAlgorithmConfig<X> config) {
+        int crossovers = 0;
+
+        for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
+            if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
+                // choose randomly two parents and perform a crossover
+                final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
+                X secondParent;
+                do {
+                    secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
+                } while (firstParent.equals(secondParent));
+                nextGeneration.add(config.crossoverOperator().apply(firstParent, secondParent));
+                crossovers++;
+            }
+        }
+
+        return crossovers;
+    }
+
+    protected int performMutations(final GeneticAlgorithmConfig<X> config) {
+        int mutations = 0;
+
+        for (int i = 0; i < nextGeneration.size(); i++) {
+            if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
+                nextGeneration.set(i, config.mutationOperator().apply(nextGeneration.get(i)));
+                mutations++;
+            }
+        }
+
+        return mutations;
+    }
+
+    protected void addRandomCreations(final GeneticAlgorithmConfig<X> config, int randomCreations) {
+        for (int i = 0; i < randomCreations; i++) {
+            nextGeneration.add(config.creation().get());
+        }
+    }
+
+    protected void endGeneration() {
+        nextGeneration.clear();
+    }
+
+    public void run(final GeneticAlgorithmConfig<X> config) {
+        resetState(config);
+
+        initialCreation(config);
 
         for (int currentGeneration = 0; currentGeneration < config.maxGenerations(); currentGeneration++) {
             if (config.verbose()) {
                 System.out.printf("Generation: %,d\n", currentGeneration);
             }
 
-            // computing scores
-            for (final X x : population) {
-                if (!cachedScores.containsKey(x)) {
-                    cachedScores.put(x, config.fitnessFunction().apply(x));
-                }
-            }
-
-            population.sort((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)));
+            computeScores(config);
 
             if (config.verbose()) {
-                for (int i = 0; i < config.printBest(); i++) {
+                final List<X> best = cachedScores.entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue())
+                        .limit(config.printBest())
+                        .map(Map.Entry::getKey)
+                        .toList();
+
+                for (int i = 0; i < best.size(); i++) {
                     System.out.printf(
                             "N. %d: '%s' (score: %.3f)\n",
-                            i + 1, config.serializer().apply(population.get(i)), cachedScores.get(population.get(i)));
+                            i + 1, config.serializer().apply(best.get(i)), cachedScores.get(best.get(i)));
                 }
             }
 
-            // The top X% gets copied directly into the new generation
-            for (int i = 0; i < survivingPopulation; i++) {
-                nextGeneration.add(population.get(i));
-            }
+            elitism();
 
-            int crossovers = 0;
+            int crossovers = performCrossovers(config);
 
-            // performing crossovers
-            for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
-                if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
-                    // choose randomly two parents and perform a crossover
-                    final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
-                    X secondParent;
-                    do {
-                        secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
-                    } while (firstParent.equals(secondParent));
-                    nextGeneration.add(config.crossoverOperator().apply(firstParent, secondParent));
-                    crossovers++;
-                }
-            }
+            int mutations = performMutations(config);
 
-            int mutations = 0;
+            int randomCreations = config.populationSize() - survivingPopulation - crossovers;
 
-            // performing mutations
-            for (int i = 0; i < nextGeneration.size(); i++) {
-                if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
-                    nextGeneration.set(i, config.mutationOperator().apply(nextGeneration.get(i)));
-                    mutations++;
-                }
-            }
-
-            int randomCreations = 0;
-
-            // adding random creations
-            while (nextGeneration.size() < config.populationSize()) {
-                nextGeneration.add(config.creation().get());
-                randomCreations++;
-            }
+            addRandomCreations(config, randomCreations);
 
             if (config.verbose()) {
                 System.out.printf("Crossovers performed : %,d\n", crossovers);
@@ -126,7 +165,8 @@ public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             final List<X> tmp = population;
             population = nextGeneration;
             nextGeneration = tmp;
-            nextGeneration.clear();
+
+            endGeneration();
         }
     }
 }

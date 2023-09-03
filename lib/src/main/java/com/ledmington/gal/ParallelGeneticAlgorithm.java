@@ -18,6 +18,7 @@
 package com.ledmington.gal;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,10 +32,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
+public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X> {
 
     private final ExecutorService executor;
-    private final RandomGenerator rng;
+    private List<Future<?>> tasks;
+    private AtomicInteger nextGenerationSize;
 
     public ParallelGeneticAlgorithm() {
         this(
@@ -49,8 +51,25 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
     }
 
     public ParallelGeneticAlgorithm(final ExecutorService executor, final RandomGenerator rng) {
+        super(rng);
         this.executor = Objects.requireNonNull(executor);
-        this.rng = Objects.requireNonNull(rng);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (executor.isTerminated()) {
+                return;
+            }
+            if (!executor.isShutdown()) {
+                executor.shutdown();
+            }
+            try {
+                boolean terminated = executor.isTerminated();
+                while (!terminated) {
+                    terminated = executor.awaitTermination(1, TimeUnit.HOURS);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }));
     }
 
     private void waitAll(final List<Future<?>> tasks) {
@@ -64,29 +83,118 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         tasks.clear();
     }
 
-    @Override
-    public void run(final GeneticAlgorithmConfig<X> config) {
-        List<X> population = new ArrayList<>(config.populationSize());
-        List<X> nextGeneration = new ArrayList<>(config.populationSize());
-        final Map<X, Double> cachedScores = new ConcurrentHashMap<>();
-        final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
-        final List<Future<?>> tasks = new ArrayList<>(config.populationSize());
+    protected void resetState(final GeneticAlgorithmConfig<X> config) {
+        population = new ArrayList<>(config.populationSize());
+        nextGeneration = new ArrayList<>(config.populationSize());
+        cachedScores = new ConcurrentHashMap<>(config.populationSize());
+        tasks = new ArrayList<>(config.populationSize());
+        survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
 
         // filling population with nulls
         for (int i = 0; i < config.populationSize(); i++) {
             population.add(null);
             nextGeneration.add(null);
         }
+    }
 
-        // initial creation
+    protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
         for (int i = 0; i < config.populationSize(); i++) {
-            final List<X> finalPopulation = population;
             final int finalI = i;
             tasks.add(executor.submit(
-                    () -> finalPopulation.set(finalI, config.creation().get())));
+                    () -> population.set(finalI, config.creation().get())));
+        }
+        waitAll(tasks);
+    }
+
+    protected void computeScores(final GeneticAlgorithmConfig<X> config) {
+        for (final X x : population) {
+            if (!cachedScores.containsKey(x)) {
+                tasks.add(executor.submit(
+                        () -> cachedScores.put(x, config.fitnessFunction().apply(x))));
+            }
         }
 
         waitAll(tasks);
+    }
+
+    protected void elitism() {
+        final List<X> best = cachedScores.entrySet().stream()
+                .parallel()
+                .sorted(Map.Entry.comparingByValue())
+                .limit(survivingPopulation)
+                .map(Map.Entry::getKey)
+                .toList();
+        for (int i = 0; i < best.size(); i++) {
+            nextGeneration.set(i, best.get(i));
+        }
+    }
+
+    protected int performCrossovers(final GeneticAlgorithmConfig<X> config) {
+        int crossovers = 0;
+        nextGenerationSize = new AtomicInteger(survivingPopulation);
+
+        for (int i = 0; nextGenerationSize.get() < config.populationSize() && i < config.populationSize(); i++) {
+            if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
+                tasks.add(executor.submit(() -> {
+                    // choose randomly two parents and perform a crossover
+                    final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
+                    X secondParent;
+                    do {
+                        secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
+                    } while (firstParent.equals(secondParent));
+                    nextGeneration.set(
+                            nextGenerationSize.getAndIncrement(),
+                            config.crossoverOperator().apply(firstParent, secondParent));
+                }));
+                crossovers++;
+            }
+        }
+
+        waitAll(tasks);
+
+        return crossovers;
+    }
+
+    protected int performMutations(final GeneticAlgorithmConfig<X> config) {
+        int mutations = 0;
+
+        for (int i = 0; i < nextGenerationSize.get(); i++) {
+            if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
+                final int finalI = i;
+                tasks.add(executor.submit(() ->
+                        nextGeneration.set(finalI, config.mutationOperator().apply(nextGeneration.get(finalI)))));
+                mutations++;
+            }
+        }
+
+        waitAll(tasks);
+
+        return mutations;
+    }
+
+    protected void addRandomCreations(final GeneticAlgorithmConfig<X> config, int randomCreations) {
+        for (int i = 0; i < randomCreations; i++) {
+            tasks.add(executor.submit(() -> nextGeneration.set(
+                    nextGenerationSize.getAndIncrement(), config.creation().get())));
+        }
+
+        waitAll(tasks);
+    }
+
+    protected void endGeneration() {
+        Collections.fill(nextGeneration, null);
+    }
+
+    /*@Override
+    public void run(final GeneticAlgorithmConfig<X> config) {
+        resetState(config.populationSize());
+        final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+
+        // filling population with nulls
+        for (int i = 0; i < config.populationSize(); i++) {
+            population.add(null);
+            nextGeneration.add(null);
+        }
 
         for (int currentGeneration = 0; currentGeneration < config.maxGenerations(); currentGeneration++) {
             if (config.verbose()) {
@@ -124,16 +232,14 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             // performing crossovers
             for (int i = 0; nextGenerationSize.get() < config.populationSize() && i < config.populationSize(); i++) {
                 if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
-                    final List<X> finalPopulation = population;
-                    final List<X> finalNextGeneration = nextGeneration;
                     tasks.add(executor.submit(() -> {
                         // choose randomly two parents and perform a crossover
-                        final X firstParent = Utils.weightedChoose(finalPopulation, cachedScores::get, rng);
+                        final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
                         X secondParent;
                         do {
-                            secondParent = Utils.weightedChoose(finalPopulation, cachedScores::get, rng);
+                            secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
                         } while (firstParent.equals(secondParent));
-                        finalNextGeneration.set(
+                        nextGeneration.set(
                                 nextGenerationSize.getAndIncrement(),
                                 config.crossoverOperator().apply(firstParent, secondParent));
                     }));
@@ -148,10 +254,9 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             // performing mutations
             for (int i = 0; i < nextGenerationSize.get(); i++) {
                 if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
-                    final List<X> finalNextGeneration = nextGeneration;
                     final int finalI = i;
-                    tasks.add(executor.submit(() -> finalNextGeneration.set(
-                            finalI, config.mutationOperator().apply(finalNextGeneration.get(finalI)))));
+                    tasks.add(executor.submit(() ->
+                            nextGeneration.set(finalI, config.mutationOperator().apply(nextGeneration.get(finalI)))));
                     mutations++;
                 }
             }
@@ -162,8 +267,7 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
             // adding random creations
             for (int i = 0; i < randomCreations; i++) {
-                final List<X> finalNextGeneration = nextGeneration;
-                tasks.add(executor.submit(() -> finalNextGeneration.set(
+                tasks.add(executor.submit(() -> nextGeneration.set(
                         nextGenerationSize.getAndIncrement(), config.creation().get())));
             }
 
@@ -186,24 +290,7 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             final List<X> tmp = population;
             population = nextGeneration;
             nextGeneration = tmp;
-            for (int i = 0; i < config.populationSize(); i++) {
-                nextGeneration.set(i, null);
-            }
-        }
 
-        if (executor.isTerminated()) {
-            return;
         }
-        if (!executor.isShutdown()) {
-            executor.shutdown();
-        }
-        try {
-            boolean terminated = executor.isTerminated();
-            while (!terminated) {
-                terminated = executor.awaitTermination(1, TimeUnit.HOURS);
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    }*/
 }
