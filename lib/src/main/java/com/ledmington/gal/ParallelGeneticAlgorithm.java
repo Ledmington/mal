@@ -98,7 +98,12 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
     }
 
     protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
-        for (int i = 0; i < config.populationSize(); i++) {
+        int i = 0;
+        for (final X obj : config.firstGeneration()) {
+            population.set(i, obj);
+            i++;
+        }
+        for (; i < config.populationSize(); i++) {
             final int finalI = i;
             tasks.add(executor.submit(
                     () -> population.set(finalI, config.creation().get())));

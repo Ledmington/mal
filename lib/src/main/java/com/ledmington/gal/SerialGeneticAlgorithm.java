@@ -50,8 +50,9 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
     }
 
     protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
-        for (int i = 0; i < config.populationSize(); i++) {
-            population.add(i, config.creation().get());
+        population.addAll(config.firstGeneration());
+        while (population.size() < config.populationSize()) {
+            population.add(config.creation().get());
         }
     }
 

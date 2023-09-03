@@ -107,6 +107,26 @@ public final class GAConfigTest {
     }
 
     @Test
+    public void noNullsFirstGeneration() {
+        assertThrows(NullPointerException.class, () -> b.firstGeneration(null, ""));
+        assertThrows(NullPointerException.class, () -> b.firstGeneration("", null));
+        assertThrows(NullPointerException.class, () -> b.firstGeneration("a", "b", null));
+        assertThrows(NullPointerException.class, () -> b.firstGeneration("a", "b", "c", null));
+        assertThrows(NullPointerException.class, () -> b.firstGeneration("a", "b", "c", "d", null));
+    }
+
+    @Test
+    public void invalidFirstGeneration() {
+        b.populationSize(2)
+                .firstGeneration("a", "b", "c")
+                .creation(() -> null)
+                .crossover((a, b) -> b)
+                .mutation(d -> d)
+                .maximize(s -> 0.0);
+        assertThrows(IllegalArgumentException.class, () -> b.build());
+    }
+
+    @Test
     public void fluentSyntax() {
         b.survivalRate(0.5)
                 .populationSize(100)

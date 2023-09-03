@@ -18,7 +18,9 @@
 package com.ledmington.gal;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -35,6 +37,7 @@ public record GeneticAlgorithmConfig<X>(
         Function<X, Double> fitnessFunction,
         Comparator<Double> scoreComparator,
         Function<X, String> serializer,
+        Set<X> firstGeneration,
         boolean verbose,
         int printBest) {
 
@@ -103,6 +106,7 @@ public record GeneticAlgorithmConfig<X>(
         private Function<X, Double> fitnessFunction = null;
         private Comparator<Double> scoreComparator = null;
         private Function<X, String> serializer = Object::toString;
+        private final Set<X> firstGeneration = new HashSet<>();
         private boolean verbose = true;
         private int nBestToPrint = 1;
 
@@ -174,6 +178,14 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
+        @SafeVarargs
+        public final GeneticAlgorithmConfigBuilder<X> firstGeneration(final X... objects) {
+            for (final X obj : objects) {
+                this.firstGeneration.add(Objects.requireNonNull(obj));
+            }
+            return this;
+        }
+
         public GeneticAlgorithmConfigBuilder<X> verbose() {
             verbose = true;
             return this;
@@ -202,6 +214,7 @@ public record GeneticAlgorithmConfig<X>(
                     fitnessFunction,
                     scoreComparator,
                     serializer,
+                    firstGeneration,
                     verbose,
                     nBestToPrint);
         }
@@ -219,6 +232,7 @@ public record GeneticAlgorithmConfig<X>(
             Function<X, Double> fitnessFunction,
             Comparator<Double> scoreComparator,
             Function<X, String> serializer,
+            Set<X> firstGeneration,
             boolean verbose,
             int printBest) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
@@ -232,7 +246,14 @@ public record GeneticAlgorithmConfig<X>(
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
+        this.firstGeneration = Objects.requireNonNull(firstGeneration, "The first generation cannot be null");
         this.verbose = verbose;
         this.printBest = assertPrintBestIsValid(printBest);
+
+        if (firstGeneration.size() > populationSize) {
+            throw new IllegalArgumentException(String.format(
+                    "Invalid first generation size: should have been <= %,d but was %,d",
+                    populationSize, firstGeneration.size()));
+        }
     }
 }
