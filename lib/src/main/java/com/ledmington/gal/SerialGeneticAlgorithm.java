@@ -17,30 +17,21 @@
 */
 package com.ledmington.gal;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.random.RandomGenerator;
-import java.util.random.RandomGeneratorFactory;
 
-public final class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
-
-    private final RandomGenerator rng;
+public final class SerialGeneticAlgorithm<X> extends AbstractGeneticAlgorithm<X> {
 
     public SerialGeneticAlgorithm() {
-        this(RandomGeneratorFactory.getDefault().create(System.nanoTime()));
+        super();
     }
 
     public SerialGeneticAlgorithm(final RandomGenerator rng) {
-        this.rng = Objects.requireNonNull(rng);
+        super(rng);
     }
 
     public void run(final GeneticAlgorithmConfig<X> config) {
-        List<X> population = new ArrayList<>(config.populationSize());
-        List<X> nextGeneration = new ArrayList<>(config.populationSize());
-        final Map<X, Double> cachedScores = new HashMap<>();
+        resetState(config.populationSize());
         final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
 
         // initial creation

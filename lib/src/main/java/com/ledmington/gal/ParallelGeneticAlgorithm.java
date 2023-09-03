@@ -19,9 +19,7 @@ package com.ledmington.gal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,10 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
+public final class ParallelGeneticAlgorithm<X> extends AbstractGeneticAlgorithm<X> {
 
     private final ExecutorService executor;
-    private final RandomGenerator rng;
 
     public ParallelGeneticAlgorithm() {
         this(
@@ -49,8 +46,8 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
     }
 
     public ParallelGeneticAlgorithm(final ExecutorService executor, final RandomGenerator rng) {
+        super(rng);
         this.executor = Objects.requireNonNull(executor);
-        this.rng = Objects.requireNonNull(rng);
     }
 
     private void waitAll(final List<Future<?>> tasks) {
@@ -66,9 +63,7 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
     @Override
     public void run(final GeneticAlgorithmConfig<X> config) {
-        List<X> population = new ArrayList<>(config.populationSize());
-        List<X> nextGeneration = new ArrayList<>(config.populationSize());
-        final Map<X, Double> cachedScores = new ConcurrentHashMap<>();
+        resetState(config.populationSize());
         final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
         final List<Future<?>> tasks = new ArrayList<>(config.populationSize());
 
@@ -80,10 +75,9 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
         // initial creation
         for (int i = 0; i < config.populationSize(); i++) {
-            final List<X> finalPopulation = population;
             final int finalI = i;
             tasks.add(executor.submit(
-                    () -> finalPopulation.set(finalI, config.creation().get())));
+                    () -> population.set(finalI, config.creation().get())));
         }
 
         waitAll(tasks);
@@ -124,16 +118,14 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             // performing crossovers
             for (int i = 0; nextGenerationSize.get() < config.populationSize() && i < config.populationSize(); i++) {
                 if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
-                    final List<X> finalPopulation = population;
-                    final List<X> finalNextGeneration = nextGeneration;
                     tasks.add(executor.submit(() -> {
                         // choose randomly two parents and perform a crossover
-                        final X firstParent = Utils.weightedChoose(finalPopulation, cachedScores::get, rng);
+                        final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
                         X secondParent;
                         do {
-                            secondParent = Utils.weightedChoose(finalPopulation, cachedScores::get, rng);
+                            secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
                         } while (firstParent.equals(secondParent));
-                        finalNextGeneration.set(
+                        nextGeneration.set(
                                 nextGenerationSize.getAndIncrement(),
                                 config.crossoverOperator().apply(firstParent, secondParent));
                     }));
@@ -148,10 +140,9 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             // performing mutations
             for (int i = 0; i < nextGenerationSize.get(); i++) {
                 if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
-                    final List<X> finalNextGeneration = nextGeneration;
                     final int finalI = i;
-                    tasks.add(executor.submit(() -> finalNextGeneration.set(
-                            finalI, config.mutationOperator().apply(finalNextGeneration.get(finalI)))));
+                    tasks.add(executor.submit(() ->
+                            nextGeneration.set(finalI, config.mutationOperator().apply(nextGeneration.get(finalI)))));
                     mutations++;
                 }
             }
@@ -162,8 +153,7 @@ public final class ParallelGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
             // adding random creations
             for (int i = 0; i < randomCreations; i++) {
-                final List<X> finalNextGeneration = nextGeneration;
-                tasks.add(executor.submit(() -> finalNextGeneration.set(
+                tasks.add(executor.submit(() -> nextGeneration.set(
                         nextGenerationSize.getAndIncrement(), config.creation().get())));
             }
 
