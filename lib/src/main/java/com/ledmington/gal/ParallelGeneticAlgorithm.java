@@ -20,7 +20,6 @@ package com.ledmington.gal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -117,12 +116,11 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         waitAll(tasks);
     }
 
-    protected void elitism() {
-        final List<X> best = cachedScores.entrySet().stream()
+    protected void elitism(final GeneticAlgorithmConfig<X> config) {
+        final List<X> best = cachedScores.keySet().stream()
                 .parallel()
-                .sorted(Map.Entry.comparingByValue())
+                .sorted((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)))
                 .limit(survivingPopulation)
-                .map(Map.Entry::getKey)
                 .toList();
         for (int i = 0; i < best.size(); i++) {
             nextGeneration.set(i, best.get(i));
@@ -184,113 +182,4 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
     protected void endGeneration() {
         Collections.fill(nextGeneration, null);
     }
-
-    /*@Override
-    public void run(final GeneticAlgorithmConfig<X> config) {
-        resetState(config.populationSize());
-        final int survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
-
-        // filling population with nulls
-        for (int i = 0; i < config.populationSize(); i++) {
-            population.add(null);
-            nextGeneration.add(null);
-        }
-
-        for (int currentGeneration = 0; currentGeneration < config.maxGenerations(); currentGeneration++) {
-            if (config.verbose()) {
-                System.out.printf("Generation: %,d\n", currentGeneration);
-            }
-
-            // computing scores
-            for (final X x : population) {
-                if (!cachedScores.containsKey(x)) {
-                    tasks.add(executor.submit(
-                            () -> cachedScores.put(x, config.fitnessFunction().apply(x))));
-                }
-            }
-
-            waitAll(tasks);
-
-            population.sort((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)));
-
-            if (config.verbose()) {
-                for (int i = 0; i < config.printBest(); i++) {
-                    System.out.printf(
-                            "N. %d: '%s' (score: %.3f)\n",
-                            i + 1, config.serializer().apply(population.get(i)), cachedScores.get(population.get(i)));
-                }
-            }
-
-            // The top X% gets copied directly into the new generation
-            for (int i = 0; i < survivingPopulation; i++) {
-                nextGeneration.set(i, population.get(i));
-            }
-
-            int crossovers = 0;
-            final AtomicInteger nextGenerationSize = new AtomicInteger(survivingPopulation);
-
-            // performing crossovers
-            for (int i = 0; nextGenerationSize.get() < config.populationSize() && i < config.populationSize(); i++) {
-                if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
-                    tasks.add(executor.submit(() -> {
-                        // choose randomly two parents and perform a crossover
-                        final X firstParent = Utils.weightedChoose(population, cachedScores::get, rng);
-                        X secondParent;
-                        do {
-                            secondParent = Utils.weightedChoose(population, cachedScores::get, rng);
-                        } while (firstParent.equals(secondParent));
-                        nextGeneration.set(
-                                nextGenerationSize.getAndIncrement(),
-                                config.crossoverOperator().apply(firstParent, secondParent));
-                    }));
-                    crossovers++;
-                }
-            }
-
-            waitAll(tasks);
-
-            int mutations = 0;
-
-            // performing mutations
-            for (int i = 0; i < nextGenerationSize.get(); i++) {
-                if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
-                    final int finalI = i;
-                    tasks.add(executor.submit(() ->
-                            nextGeneration.set(finalI, config.mutationOperator().apply(nextGeneration.get(finalI)))));
-                    mutations++;
-                }
-            }
-
-            waitAll(tasks);
-
-            int randomCreations = config.populationSize() - nextGenerationSize.get();
-
-            // adding random creations
-            for (int i = 0; i < randomCreations; i++) {
-                tasks.add(executor.submit(() -> nextGeneration.set(
-                        nextGenerationSize.getAndIncrement(), config.creation().get())));
-            }
-
-            waitAll(tasks);
-
-            if (config.verbose()) {
-                System.out.printf("Crossovers performed : %,d\n", crossovers);
-                System.out.printf("Mutations applied : %,d\n", mutations);
-                System.out.printf("Random creations : %,d\n", randomCreations);
-                System.out.println();
-            }
-
-            if (population.size() != config.populationSize() || nextGenerationSize.get() != config.populationSize()) {
-                throw new IllegalStateException(String.format(
-                        "The population and the next generation don't have the right size: they were %,d and %,d but should have been %,d",
-                        population.size(), nextGenerationSize.get(), config.populationSize()));
-            }
-
-            // swap population and nextGeneration
-            final List<X> tmp = population;
-            population = nextGeneration;
-            nextGeneration = tmp;
-
-        }
-    }*/
 }

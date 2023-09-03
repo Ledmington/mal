@@ -62,11 +62,10 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         }
     }
 
-    protected void elitism() {
-        cachedScores.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
+    protected void elitism(final GeneticAlgorithmConfig<X> config) {
+        cachedScores.keySet().stream()
+                .sorted((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)))
                 .limit(survivingPopulation)
-                .map(Map.Entry::getKey)
                 .forEach(x -> nextGeneration.add(x));
     }
 
@@ -125,10 +124,9 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
             computeScores(config);
 
             if (config.verbose()) {
-                final List<X> best = cachedScores.entrySet().stream()
-                        .sorted(Map.Entry.comparingByValue())
+                final List<X> best = cachedScores.keySet().stream()
+                        .sorted((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)))
                         .limit(config.printBest())
-                        .map(Map.Entry::getKey)
                         .toList();
 
                 for (int i = 0; i < best.size(); i++) {
@@ -138,7 +136,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 }
             }
 
-            elitism();
+            elitism(config);
 
             int crossovers = performCrossovers(config);
 
