@@ -19,7 +19,6 @@ package com.ledmington.gal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -29,10 +28,7 @@ import java.util.random.RandomGeneratorFactory;
 public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
     protected final RandomGenerator rng;
-    protected List<X> population = null;
-    protected List<X> nextGeneration = null;
-    protected Map<X, Double> cachedScores = null;
-    protected int survivingPopulation = -1;
+    protected GeneticAlgorithmState<X> state;
 
     public SerialGeneticAlgorithm() {
         this(RandomGeneratorFactory.getDefault().create(System.nanoTime()));
@@ -43,39 +39,88 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
     }
 
     protected void resetState(final GeneticAlgorithmConfig<X> config) {
-        population = new ArrayList<>(config.populationSize());
-        nextGeneration = new ArrayList<>(config.populationSize());
-        cachedScores = new HashMap<>(config.populationSize());
-        survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+        state = new GeneticAlgorithmState<>(
+                new ArrayList<>(config.populationSize()),
+                new ArrayList<>(config.populationSize()),
+                new HashMap<>(config.populationSize(), 1.0f),
+                (int) ((double) config.populationSize() * config.survivalRate()));
     }
 
     protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
-        population.addAll(config.firstGeneration());
-        while (population.size() < config.populationSize()) {
-            population.add(config.creation().get());
+        state.population().addAll(config.firstGeneration());
+        while (state.population().size() < config.populationSize()) {
+            state.population().add(config.creation().get());
         }
     }
 
     protected void computeScores(final GeneticAlgorithmConfig<X> config) {
-        for (final X x : population) {
-            if (!cachedScores.containsKey(x)) {
-                cachedScores.put(x, config.fitnessFunction().apply(x));
+        for (final X x : state.population()) {
+            if (!state.scores().containsKey(x)) {
+                state.scores().put(x, config.fitnessFunction().apply(x));
             }
         }
     }
 
     protected void elitism(final GeneticAlgorithmConfig<X> config) {
-        cachedScores.keySet().stream()
-                .sorted((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)))
-                .limit(survivingPopulation)
-                .forEach(x -> nextGeneration.add(x));
+        if (state.bestOfAllTime().isEmpty()) {
+            // the first time compute the last N best solutions from the global
+            // Map of scores
+            state.scores().entrySet().stream()
+                    .sorted((a, b) -> config.scoreComparator().compare(a.getValue(), b.getValue()))
+                    .limit(state.survivingPopulation())
+                    .map(Map.Entry::getKey)
+                    .forEach(x -> {
+                        state.bestOfAllTime().add(x);
+                        state.nextGeneration().add(x);
+                    });
+        } else {
+            // all the other times, we compute the best N solutions by combining lastBest
+            // and the best N from the current generation
+            state.population().stream()
+                    .distinct()
+                    .sorted((a, b) -> config.scoreComparator()
+                            .compare(state.scores().get(a), state.scores().get(b)))
+                    .limit(state.survivingPopulation())
+                    .forEach(x -> state.bestOfAllTime().add(x));
+            if (state.bestOfAllTime().size() < state.survivingPopulation()) {
+                throw new AssertionError(String.format(
+                        "Wrong size: was %,d but should have been at least %,d",
+                        state.bestOfAllTime().size(), state.survivingPopulation()));
+            }
+
+            state.bestOfAllTime().stream()
+                    .sorted((a, b) -> config.scoreComparator()
+                            .compare(state.scores().get(a), state.scores().get(b)))
+                    .limit(state.survivingPopulation())
+                    .forEach(x -> state.nextGeneration().add(x));
+
+            if (state.bestOfAllTime().size() < state.survivingPopulation()) {
+                throw new AssertionError(String.format(
+                        "Wrong size2: was %,d but should have been at least %,d",
+                        state.bestOfAllTime().size(), state.survivingPopulation()));
+            }
+
+            state.bestOfAllTime().stream()
+                    .sorted((a, b) -> config.scoreComparator()
+                            .compare(state.scores().get(a), state.scores().get(b)))
+                    .toList()
+                    .subList(state.survivingPopulation(), state.bestOfAllTime().size())
+                    .forEach(x -> state.bestOfAllTime().remove(x));
+
+            if (state.bestOfAllTime().size() < state.survivingPopulation()) {
+                throw new AssertionError(String.format(
+                        "Wrong size3: was %,d but should have been at least %,d",
+                        state.bestOfAllTime().size(), state.survivingPopulation()));
+            }
+        }
     }
 
     protected int performCrossovers(final GeneticAlgorithmConfig<X> config) {
         int crossovers = 0;
-        final Supplier<X> weightedRandom = Utils.weightedChoose(population, cachedScores::get, rng);
+        final Supplier<X> weightedRandom =
+                Utils.weightedChoose(state.population(), x -> state.scores().get(x), rng);
 
-        for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
+        for (int i = 0; state.nextGeneration().size() < config.populationSize() && i < config.populationSize(); i++) {
             if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
                 // choose randomly two parents and perform a crossover
                 final X firstParent = weightedRandom.get();
@@ -83,7 +128,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 do {
                     secondParent = weightedRandom.get();
                 } while (firstParent.equals(secondParent));
-                nextGeneration.add(config.crossoverOperator().apply(firstParent, secondParent));
+                state.nextGeneration().add(config.crossoverOperator().apply(firstParent, secondParent));
                 crossovers++;
             }
         }
@@ -94,9 +139,13 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
     protected int performMutations(final GeneticAlgorithmConfig<X> config) {
         int mutations = 0;
 
-        for (int i = 0; i < nextGeneration.size(); i++) {
+        for (int i = 0; i < state.nextGeneration().size(); i++) {
             if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
-                nextGeneration.set(i, config.mutationOperator().apply(nextGeneration.get(i)));
+                state.nextGeneration()
+                        .set(
+                                i,
+                                config.mutationOperator()
+                                        .apply(state.nextGeneration().get(i)));
                 mutations++;
             }
         }
@@ -106,12 +155,12 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
     protected void addRandomCreations(final GeneticAlgorithmConfig<X> config, int randomCreations) {
         for (int i = 0; i < randomCreations; i++) {
-            nextGeneration.add(config.creation().get());
+            state.nextGeneration().add(config.creation().get());
         }
     }
 
     protected void endGeneration() {
-        nextGeneration.clear();
+        state.nextGeneration().clear();
     }
 
     public void run(final GeneticAlgorithmConfig<X> config) {
@@ -119,55 +168,36 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
         initialCreation(config);
 
-        for (int currentGeneration = 0; currentGeneration < config.maxGenerations(); currentGeneration++) {
-            if (config.verbose()) {
-                System.out.printf("Generation: %,d\n", currentGeneration);
-            }
-
+        while (state.currentGeneration() < config.maxGenerations()) {
             computeScores(config);
-
-            if (config.verbose()) {
-                final List<X> best = cachedScores.keySet().stream()
-                        .sorted((a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b)))
-                        .limit(config.printBest())
-                        .toList();
-
-                for (int i = 0; i < best.size(); i++) {
-                    System.out.printf(
-                            "N. %d: '%s' (score: %.3f)\n",
-                            i + 1, config.serializer().apply(best.get(i)), cachedScores.get(best.get(i)));
-                }
-            }
 
             elitism(config);
 
-            int crossovers = performCrossovers(config);
+            final int crossovers = performCrossovers(config);
 
-            int mutations = performMutations(config);
+            final int mutations = performMutations(config);
 
-            int randomCreations = config.populationSize() - survivingPopulation - crossovers;
+            final int randomCreations = config.populationSize() - state.survivingPopulation() - crossovers;
 
             addRandomCreations(config, randomCreations);
 
-            if (config.verbose()) {
-                System.out.printf("Crossovers performed : %,d\n", crossovers);
-                System.out.printf("Mutations applied : %,d\n", mutations);
-                System.out.printf("Random creations : %,d\n", randomCreations);
-                System.out.println();
-            }
+            config.printer().accept(state);
 
-            if (population.size() != config.populationSize() || nextGeneration.size() != config.populationSize()) {
+            if (state.population().size() != config.populationSize()
+                    || state.nextGeneration().size() != config.populationSize()) {
                 throw new IllegalStateException(String.format(
                         "The population and the next generation don't have the right size: they were %,d and %,d but should have been %,d",
-                        population.size(), nextGeneration.size(), config.populationSize()));
+                        state.population().size(), state.nextGeneration().size(), config.populationSize()));
             }
 
             // swap population and nextGeneration
-            final List<X> tmp = population;
-            population = nextGeneration;
-            nextGeneration = tmp;
+            state.swapPopulations();
 
             endGeneration();
+
+            state.incrementGeneration();
         }
+
+        state.bestOfAllTime().clear();
     }
 }

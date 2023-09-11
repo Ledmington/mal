@@ -18,7 +18,6 @@
 package com.ledmington.gal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -101,7 +100,7 @@ public final class GAConfigTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-1, 0})
+    @ValueSource(ints = {-2, -1})
     public void invalidPrintBest(int nBestToPrint) {
         assertThrows(IllegalArgumentException.class, () -> b.printBest(nBestToPrint));
     }
@@ -158,6 +157,5 @@ public final class GAConfigTest {
         assertEquals(100, c.populationSize());
         assertEquals(0.6, c.crossoverRate());
         assertEquals(0.2, c.mutationRate());
-        assertFalse(c.verbose());
     }
 }

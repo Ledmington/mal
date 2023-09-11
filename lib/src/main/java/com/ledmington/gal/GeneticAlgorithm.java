@@ -17,6 +17,68 @@
 */
 package com.ledmington.gal;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 public interface GeneticAlgorithm<X> {
+
+    final class GeneticAlgorithmState<X> {
+        private int generation = 0;
+        private List<X> population;
+        private List<X> nextGeneration;
+        private final Map<X, Double> cachedScores;
+        private final int survivingPopulation;
+        private final Set<X> bestOfAllTime; // for optimization
+
+        public GeneticAlgorithmState(
+                final List<X> population,
+                final List<X> nextGeneration,
+                final Map<X, Double> cachedScores,
+                final int survivors) {
+            this.population = Objects.requireNonNull(population);
+            this.nextGeneration = Objects.requireNonNull(nextGeneration);
+            this.cachedScores = Objects.requireNonNull(cachedScores);
+            this.survivingPopulation = survivors;
+            bestOfAllTime = new LinkedHashSet<>(survivors * 2, 1.0f);
+        }
+
+        public List<X> population() {
+            return population;
+        }
+
+        public List<X> nextGeneration() {
+            return nextGeneration;
+        }
+
+        public Map<X, Double> scores() {
+            return cachedScores;
+        }
+
+        public int survivingPopulation() {
+            return survivingPopulation;
+        }
+
+        public Set<X> bestOfAllTime() {
+            return bestOfAllTime;
+        }
+
+        public void swapPopulations() {
+            final List<X> tmp = population;
+            population = nextGeneration;
+            nextGeneration = tmp;
+        }
+
+        public int currentGeneration() {
+            return generation;
+        }
+
+        public void incrementGeneration() {
+            generation++;
+        }
+    }
+
     void run(final GeneticAlgorithmConfig<X> config);
 }

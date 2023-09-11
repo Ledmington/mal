@@ -83,18 +83,23 @@ if (System.getProperty("os.name").toLowerCase().contains("windows")) {
         dependsOn([asyncProfiler, fatJar])
         group 'useful'
         description 'Runs the app with async-profiler attached and generates a flamegraph'
-        def flamegraphFile = path("${buildDir}", "flamegraphs", "flamegraph-cpu-${getDate()}.html")
+        String flamegraphFile = path("${buildDir}", "flamegraphs", "flamegraph-cpu-${getDate()}.html")
         doFirst {
             mkdir path("${buildDir}", "flamegraphs")
         }
         classpath fatJarPath
-        args = ["sim", "offline"]
+        args = ["knapsack"]
         jvmArgs = [
                 "-agentpath:${asyncProfiler.profiler}=start,event=cpu,file=${flamegraphFile}"
         ]
         doLast {
-            println "\n"
-            println "Generated flamegraph ${flamegraphFile}"
+            if(new File(flamegraphFile).exists()) {
+                println "\n"
+                println "Generated flamegraph ${flamegraphFile}"
+            } else {
+                println "\n"
+                println "It seems that a flamegraph has not been generated. Have you checked your perf_event_paranoid?"
+            }
         }
     }
 }

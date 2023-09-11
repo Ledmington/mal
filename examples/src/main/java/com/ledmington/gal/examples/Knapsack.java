@@ -25,6 +25,51 @@ import com.ledmington.gal.GeneticAlgorithmConfig;
 import com.ledmington.gal.ParallelGeneticAlgorithm;
 
 public final class Knapsack {
+
+    private static final class Solution {
+        private final boolean[] array;
+        private final int cachedHashCode;
+
+        public Solution(final boolean[] array) {
+            this.array = array;
+            int h = 17;
+            for (final boolean b : array) {
+                h = 31 * h + (b ? 1 : 0);
+            }
+            cachedHashCode = h;
+        }
+
+        public boolean[] array() {
+            return array;
+        }
+
+        public int hashCode() {
+            return cachedHashCode;
+        }
+
+        public boolean equals(final Object other) {
+            if (other == null) {
+                return false;
+            }
+            if (this == other) {
+                return true;
+            }
+            if (!this.getClass().equals(other.getClass())) {
+                return false;
+            }
+            final Solution s = (Solution) other;
+            if (this.array.length != s.array.length) {
+                return false;
+            }
+            for (int i = 0; i < array.length; i++) {
+                if (this.array[i] != s.array[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     public Knapsack() {
         final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
         final int nItems = 100;
@@ -37,12 +82,15 @@ public final class Knapsack {
             values[i] = rng.nextDouble(0.1, 6.0);
         }
 
-        final GeneticAlgorithm<boolean[]> ga = new ParallelGeneticAlgorithm<>();
+        final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>();
 
-        ga.run(GeneticAlgorithmConfig.<boolean[]>builder()
-                .populationSize(1000)
-                .maxGenerations(1000)
+        ga.run(GeneticAlgorithmConfig.<Solution>builder()
+                .populationSize(10_000)
+                .maxGenerations(100)
                 .printBest(5)
+                .printWorst(5)
+                .printMedian()
+                .printAverageScore()
                 .survivalRate(0.1)
                 .crossoverRate(0.8)
                 .mutationRate(0.1)
@@ -62,14 +110,14 @@ public final class Knapsack {
                         v[toBeAdded] = true;
                         c += weights[toBeAdded];
                     }
-                    return v;
+                    return new Solution(v);
                 })
                 .crossover((a, b) -> {
                     // OR the parents together
                     final boolean[] v = new boolean[nItems];
                     int c = 0;
                     for (int i = 0; i < nItems; i++) {
-                        if (a[i] || b[i]) {
+                        if (a.array()[i] || b.array()[i]) {
                             v[i] = true;
                             c += weights[i];
                         }
@@ -85,13 +133,15 @@ public final class Knapsack {
                         c -= weights[toBeRemoved];
                     }
 
-                    return v;
+                    return new Solution(v);
                 })
                 .mutation(x -> {
+                    final boolean[] v = new boolean[nItems];
+                    System.arraycopy(x.array(), 0, v, 0, nItems);
                     // compute capacity
                     int c = 0;
                     for (int i = 0; i < nItems; i++) {
-                        if (x[i]) {
+                        if (v[i]) {
                             c += weights[i];
                         }
                     }
@@ -100,8 +150,8 @@ public final class Knapsack {
                     int toBeAdded;
                     do {
                         toBeAdded = rng.nextInt(0, nItems);
-                    } while (x[toBeAdded]);
-                    x[toBeAdded] = true;
+                    } while (v[toBeAdded]);
+                    v[toBeAdded] = true;
                     c += weights[toBeAdded];
 
                     // remove random items until the capacity is valid
@@ -109,17 +159,17 @@ public final class Knapsack {
                         int toBeRemoved;
                         do {
                             toBeRemoved = rng.nextInt(0, nItems);
-                        } while (toBeAdded != toBeRemoved && !x[toBeRemoved]);
-                        x[toBeRemoved] = false;
+                        } while (toBeAdded != toBeRemoved && !v[toBeRemoved]);
+                        v[toBeRemoved] = false;
                         c -= weights[toBeRemoved];
                     }
 
-                    return x;
+                    return new Solution(v);
                 })
                 .maximize(x -> {
                     double s = 0.0;
                     for (int i = 0; i < nItems; i++) {
-                        if (x[i]) {
+                        if (x.array()[i]) {
                             s += values[i];
                         }
                     }
@@ -128,7 +178,7 @@ public final class Knapsack {
                 .serializer(x -> {
                     final StringBuilder sb = new StringBuilder("|");
                     for (int i = 0; i < nItems; i++) {
-                        if (x[i]) {
+                        if (x.array()[i]) {
                             sb.append(i).append("|");
                         }
                     }

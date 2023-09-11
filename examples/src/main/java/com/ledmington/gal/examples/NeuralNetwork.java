@@ -77,6 +77,8 @@ public final class NeuralNetwork {
             this.b1 = new float[nMiddle];
             this.w2 = new float[nMiddle][nOutputs];
             this.b2 = new float[nOutputs];
+            this.cachedHashCode = -1;
+            this.isHashCodeSet = false;
 
             for (int i = 0; i < nInputs; i++) {
                 System.arraycopy(n.w1[i], 0, this.w1[i], 0, nMiddle);
@@ -186,6 +188,9 @@ public final class NeuralNetwork {
                 .crossoverRate(0.8)
                 .mutationRate(0.1)
                 .printBest(5)
+                .printWorst(5)
+                .printMedian()
+                .printAverageScore()
                 .creation(() -> new Network(inputVariables, sizeMiddleLayer, outputVariables, true))
                 .crossover((a, b) -> {
                     final Network son = new Network(inputVariables, sizeMiddleLayer, outputVariables, false);

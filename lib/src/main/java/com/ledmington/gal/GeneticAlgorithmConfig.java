@@ -17,13 +17,18 @@
 */
 package com.ledmington.gal;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import com.ledmington.gal.GeneticAlgorithm.GeneticAlgorithmState;
 
 public record GeneticAlgorithmConfig<X>(
         int populationSize,
@@ -38,8 +43,7 @@ public record GeneticAlgorithmConfig<X>(
         Comparator<Double> scoreComparator,
         Function<X, String> serializer,
         Set<X> firstGeneration,
-        boolean verbose,
-        int printBest) {
+        Consumer<GeneticAlgorithmState<X>> printer) {
 
     public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
         return new GeneticAlgorithmConfigBuilder<>();
@@ -86,7 +90,7 @@ public record GeneticAlgorithmConfig<X>(
     }
 
     private static int assertPrintBestIsValid(int nBestToPrint) {
-        if (nBestToPrint <= 0) {
+        if (nBestToPrint < 0) {
             throw new IllegalArgumentException(
                     String.format("Invalid nBestToPrint: must be > 0 but was %,d\n", nBestToPrint));
         }
@@ -107,8 +111,11 @@ public record GeneticAlgorithmConfig<X>(
         private Comparator<Double> scoreComparator = null;
         private Function<X, String> serializer = Object::toString;
         private final Set<X> firstGeneration = new HashSet<>();
-        private boolean verbose = true;
+        private boolean verbose = false;
         private int nBestToPrint = 1;
+        private int nWorstToPrint = 0;
+        private boolean printMedian = false;
+        private boolean printAverageScore = false;
 
         public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
             assertPopulationSizeIsValid(pop);
@@ -188,6 +195,10 @@ public record GeneticAlgorithmConfig<X>(
 
         public GeneticAlgorithmConfigBuilder<X> verbose() {
             verbose = true;
+            nBestToPrint = 5;
+            nWorstToPrint = 5;
+            printMedian = true;
+            printAverageScore = true;
             return this;
         }
 
@@ -197,11 +208,76 @@ public record GeneticAlgorithmConfig<X>(
         }
 
         public GeneticAlgorithmConfigBuilder<X> printBest(final int nBestToPrint) {
+            verbose = true;
             this.nBestToPrint = assertPrintBestIsValid(nBestToPrint);
             return this;
         }
 
+        public GeneticAlgorithmConfigBuilder<X> printWorst(final int nWorstToPrint) {
+            verbose = true;
+            this.nWorstToPrint = assertPrintBestIsValid(nWorstToPrint);
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> printMedian() {
+            verbose = true;
+            this.printMedian = true;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> printAverageScore() {
+            verbose = true;
+            this.printAverageScore = true;
+            return this;
+        }
+
         public GeneticAlgorithmConfig<X> build() {
+            Consumer<GeneticAlgorithmState<X>> printer;
+            if (!verbose) {
+                printer = s -> {};
+            } else {
+                printer = state -> {
+                    System.out.printf("Generation: %,d\n", state.currentGeneration());
+                    final List<SimpleImmutableEntry<X, Double>> bestPopulation = state.bestOfAllTime().stream()
+                            .map(x ->
+                                    new SimpleImmutableEntry<>(x, state.scores().get(x)))
+                            .sorted((a, b) -> scoreComparator.compare(a.getValue(), b.getValue()))
+                            .toList();
+
+                    for (int i = 0; i < nBestToPrint; i++) {
+                        System.out.printf(
+                                "N. %,4d: '%s' (score: %.6f)\n",
+                                i + 1,
+                                serializer.apply(bestPopulation.get(i).getKey()),
+                                bestPopulation.get(i).getValue());
+                    }
+                    if (printMedian) {
+                        int medianIndex = state.survivingPopulation() / 2;
+                        System.out.printf(
+                                "N. %,4d: '%s' (score: %.6f)\n",
+                                medianIndex,
+                                serializer.apply(bestPopulation.get(medianIndex).getKey()),
+                                bestPopulation.get(medianIndex).getValue());
+                    }
+                    for (int i = state.survivingPopulation() - nWorstToPrint; i < state.survivingPopulation(); i++) {
+                        System.out.printf(
+                                "N. %,4d: '%s' (score: %.6f)\n",
+                                i + 1,
+                                serializer.apply(bestPopulation.get(i).getKey()),
+                                bestPopulation.get(i).getValue());
+                    }
+                    if (printAverageScore) {
+                        System.out.printf(
+                                "Average score: %.6f\n",
+                                bestPopulation.stream()
+                                        .mapToDouble(SimpleImmutableEntry::getValue)
+                                        .average()
+                                        .orElseThrow());
+                    }
+                    System.out.println();
+                };
+            }
+
             return new GeneticAlgorithmConfig<>(
                     populationSize,
                     survivalRate,
@@ -215,8 +291,7 @@ public record GeneticAlgorithmConfig<X>(
                     scoreComparator,
                     serializer,
                     firstGeneration,
-                    verbose,
-                    nBestToPrint);
+                    printer);
         }
     }
 
@@ -233,8 +308,7 @@ public record GeneticAlgorithmConfig<X>(
             Comparator<Double> scoreComparator,
             Function<X, String> serializer,
             Set<X> firstGeneration,
-            boolean verbose,
-            int printBest) {
+            Consumer<GeneticAlgorithmState<X>> printer) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
         this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
@@ -247,8 +321,7 @@ public record GeneticAlgorithmConfig<X>(
         this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
         this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
         this.firstGeneration = Objects.requireNonNull(firstGeneration, "The first generation cannot be null");
-        this.verbose = verbose;
-        this.printBest = assertPrintBestIsValid(printBest);
+        this.printer = Objects.requireNonNull(printer, "The printer cannot be null");
 
         if (firstGeneration.size() > populationSize) {
             throw new IllegalArgumentException(String.format(
