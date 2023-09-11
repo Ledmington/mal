@@ -1,4 +1,4 @@
-name: Java CI with Gradle
+name: Gradle test
 
 on:
   push:
@@ -26,5 +26,5 @@ jobs:
       uses: gradle/gradle-build-action@v2
     
     - name: gradle test
-      run: ./gradlew --no-daemon test
+      run: ./gradlew --no-daemon --console=plain test
 
