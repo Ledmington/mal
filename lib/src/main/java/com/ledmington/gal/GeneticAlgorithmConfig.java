@@ -67,6 +67,14 @@ public record GeneticAlgorithmConfig<X>(
         return generations;
     }
 
+    private static int assertMaxSecondsIsValid(int maxSeconds) {
+        if (maxSeconds < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid max seconds: needs to be >= 0 but was %d", maxSeconds));
+        }
+        return maxSeconds;
+    }
+
     private static double assertSurvivalRateIsValid(double rate) {
         if (rate <= 0.0 || rate >= 1.0) {
             throw new IllegalArgumentException(
@@ -108,6 +116,7 @@ public record GeneticAlgorithmConfig<X>(
         private double mutationRate = 0.1;
         private Predicate<GeneticAlgorithmState<X>> maxGenerations = null;
         private Predicate<GeneticAlgorithmState<X>> stopCriterion = null;
+        private Predicate<GeneticAlgorithmState<X>> maxTime = null;
         private Supplier<X> randomCreation = null;
         private BiFunction<X, X, X> crossoverOperator = null;
         private Function<X, X> mutationOperator = null;
@@ -154,6 +163,12 @@ public record GeneticAlgorithmConfig<X>(
         public GeneticAlgorithmConfigBuilder<X> stopCriterion(final Predicate<X> criterion) {
             Objects.requireNonNull(criterion, "The stopping criterion cannot be null");
             stopCriterion = state -> state.population().stream().anyMatch(criterion);
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> maxSeconds(int maxSeconds) {
+            final long maxMillis = assertMaxSecondsIsValid(maxSeconds) * 1_000L;
+            maxTime = state -> (System.currentTimeMillis() - state.startTime()) >= maxMillis;
             return this;
         }
 
@@ -247,7 +262,7 @@ public record GeneticAlgorithmConfig<X>(
             }
 
             final List<Predicate<GeneticAlgorithmState<X>>> terminationCriteria = Stream.of(
-                            maxGenerations, stopCriterion)
+                            maxGenerations, stopCriterion, maxTime)
                     .filter(Objects::nonNull)
                     .toList();
             if (terminationCriteria.isEmpty()) {

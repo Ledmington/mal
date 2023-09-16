@@ -252,4 +252,28 @@ public abstract class GATest {
                 // "computeScores" phase
                 ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit));
     }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6})
+    public void maxTime(int seconds) {
+        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
+                .maxSeconds(seconds)
+                .creation(() -> String.valueOf(rng.nextInt()))
+                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+                .maximize(s -> (double) s.length())
+                .quiet();
+
+        ga.run(gacb.build());
+        final long end = System.currentTimeMillis();
+        final long elapsedExpected = seconds * 1_000L;
+        final long elapsedActual = end - ga.getState().startTime();
+
+        assertTrue(
+                elapsedActual >= elapsedExpected,
+                String.format(
+                        "The algorithm should have executed for at least %,d milliseconds but it ran for %,d milliseconds instead",
+                        elapsedExpected, elapsedActual));
+    }
 }

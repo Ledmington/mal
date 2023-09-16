@@ -26,6 +26,7 @@ import java.util.Set;
 public interface GeneticAlgorithm<X> {
 
     final class GeneticAlgorithmState<X> {
+        private final long startTime;
         private int generation = 0;
         private List<X> population;
         private List<X> nextGeneration;
@@ -38,11 +39,16 @@ public interface GeneticAlgorithm<X> {
                 final List<X> nextGeneration,
                 final Map<X, Double> cachedScores,
                 final int survivors) {
+            this.startTime = System.currentTimeMillis();
             this.population = Objects.requireNonNull(population);
             this.nextGeneration = Objects.requireNonNull(nextGeneration);
             this.cachedScores = Objects.requireNonNull(cachedScores);
             this.survivingPopulation = survivors;
             bestOfAllTime = new LinkedHashSet<>(survivors * 2, 1.0f);
+        }
+
+        public long startTime() {
+            return startTime;
         }
 
         public List<X> population() {
