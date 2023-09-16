@@ -26,7 +26,9 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.ledmington.gal.GeneticAlgorithm.GeneticAlgorithmState;
 
@@ -35,7 +37,7 @@ public record GeneticAlgorithmConfig<X>(
         double survivalRate,
         double crossoverRate,
         double mutationRate,
-        int maxGenerations,
+        Predicate<GeneticAlgorithmState<X>> termination,
         Supplier<X> creation,
         BiFunction<X, X, X> crossoverOperator,
         Function<X, X> mutationOperator,
@@ -99,11 +101,13 @@ public record GeneticAlgorithmConfig<X>(
 
     public static final class GeneticAlgorithmConfigBuilder<X> {
 
+        private boolean alreadyBuilt = false;
         private int populationSize = 100;
         private double survivalRate = 0.1;
         private double crossoverRate = 0.7;
         private double mutationRate = 0.1;
-        private int maxGenerations = 100;
+        private Predicate<GeneticAlgorithmState<X>> maxGenerations = null;
+        private Predicate<GeneticAlgorithmState<X>> stopCriterion = null;
         private Supplier<X> randomCreation = null;
         private BiFunction<X, X, X> crossoverOperator = null;
         private Function<X, X> mutationOperator = null;
@@ -143,7 +147,13 @@ public record GeneticAlgorithmConfig<X>(
 
         public GeneticAlgorithmConfigBuilder<X> maxGenerations(int generations) {
             assertMaxGenerationsIsValid(generations);
-            maxGenerations = generations;
+            maxGenerations = state -> state.currentGeneration() >= generations;
+            return this;
+        }
+
+        public GeneticAlgorithmConfigBuilder<X> stopCriterion(final Predicate<X> criterion) {
+            Objects.requireNonNull(criterion, "The stopping criterion cannot be null");
+            stopCriterion = state -> state.population().stream().anyMatch(criterion);
             return this;
         }
 
@@ -232,6 +242,20 @@ public record GeneticAlgorithmConfig<X>(
         }
 
         public GeneticAlgorithmConfig<X> build() {
+            if (alreadyBuilt) {
+                throw new IllegalStateException("Cannot build the same GeneticAlgorithmConfigBuilder two times");
+            }
+
+            final List<Predicate<GeneticAlgorithmState<X>>> terminationCriteria = Stream.of(
+                            maxGenerations, stopCriterion)
+                    .filter(Objects::nonNull)
+                    .toList();
+            if (terminationCriteria.isEmpty()) {
+                throw new IllegalArgumentException("No termination criterion was defined");
+            }
+            final Predicate<GeneticAlgorithmState<X>> termination =
+                    state -> terminationCriteria.stream().anyMatch(p -> p.test(state));
+
             Consumer<GeneticAlgorithmState<X>> printer;
             if (!verbose) {
                 printer = s -> {};
@@ -278,12 +302,13 @@ public record GeneticAlgorithmConfig<X>(
                 };
             }
 
+            this.alreadyBuilt = true;
             return new GeneticAlgorithmConfig<>(
                     populationSize,
                     survivalRate,
                     crossoverRate,
                     mutationRate,
-                    maxGenerations,
+                    termination,
                     randomCreation,
                     crossoverOperator,
                     mutationOperator,
@@ -300,7 +325,7 @@ public record GeneticAlgorithmConfig<X>(
             double survivalRate,
             double crossoverRate,
             double mutationRate,
-            int maxGenerations,
+            Predicate<GeneticAlgorithmState<X>> termination,
             Supplier<X> creation,
             BiFunction<X, X, X> crossoverOperator,
             Function<X, X> mutationOperator,
@@ -313,7 +338,7 @@ public record GeneticAlgorithmConfig<X>(
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
         this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
         this.mutationRate = assertMutationRateIsValid(mutationRate);
-        this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
+        this.termination = Objects.requireNonNull(termination, "The termination criterion cannot be null");
         this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
         this.crossoverOperator = Objects.requireNonNull(crossoverOperator, "The crossover operator cannot be null");
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");

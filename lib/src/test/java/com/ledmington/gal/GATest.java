@@ -153,6 +153,7 @@ public abstract class GATest {
         final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
         ga.run(GeneticAlgorithmConfig.<String>builder()
+                .maxGenerations(100)
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
@@ -209,9 +210,46 @@ public abstract class GATest {
         System.setOut(oldStdout);
 
         // the algorithm prints at least one line for each individual plus one for the generation
-        assertTrue(
-                stdout.toString().lines().count()
-                        >= nBestToPrint + nWorstToPrint + (printMedian ? 1 : 0) + (printAverage ? 1 : 0) + 1,
+        assertEquals(
+                nBestToPrint + nWorstToPrint + (printMedian ? 1 : 0) + (printAverage ? 1 : 0) + 1,
+                stdout.toString().lines().count() - 1, // minus one for the newline
                 " --- STDOUT ---\n" + stdout + "\n --- END STDOUT ---\n");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 5, 10, 20, 30, 40, 50})
+    public void maxGenerations(int generations) {
+        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
+                .maxGenerations(generations)
+                .creation(() -> String.valueOf(rng.nextInt()))
+                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+                .maximize(s -> (double) s.length())
+                .quiet();
+
+        ga.run(gacb.build());
+
+        assertEquals(generations, ga.getState().currentGeneration());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 9, 99, 999, 9_999, 99_999, 999_999})
+    public void stopCriterion(int limit) {
+        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
+                .stopCriterion(s -> Integer.parseInt(s) >= limit)
+                .creation(() -> String.valueOf(rng.nextInt()))
+                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+                .maximize(s -> (double) s.length())
+                .quiet();
+
+        ga.run(gacb.build());
+
+        assertTrue(
+                // we check just the population of the latest generation because the check is performed before the
+                // "computeScores" phase
+                ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit));
     }
 }

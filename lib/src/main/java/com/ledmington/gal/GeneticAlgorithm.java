@@ -80,5 +80,7 @@ public interface GeneticAlgorithm<X> {
         }
     }
 
+    GeneticAlgorithmState<X> getState();
+
     void run(final GeneticAlgorithmConfig<X> config);
 }

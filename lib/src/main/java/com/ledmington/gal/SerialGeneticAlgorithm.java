@@ -38,6 +38,10 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         this.rng = Objects.requireNonNull(rng);
     }
 
+    public GeneticAlgorithmState<X> getState() {
+        return state;
+    }
+
     protected void resetState(final GeneticAlgorithmConfig<X> config) {
         state = new GeneticAlgorithmState<>(
                 new ArrayList<>(config.populationSize()),
@@ -168,7 +172,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
         initialCreation(config);
 
-        while (state.currentGeneration() < config.maxGenerations()) {
+        while (!config.termination().test(state)) {
             computeScores(config);
 
             elitism(config);

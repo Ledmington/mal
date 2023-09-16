@@ -36,7 +36,7 @@ public final class GAConfigTest {
 
     @Test
     public void cannotBuildWithNoParameters() {
-        assertThrows(NullPointerException.class, () -> b.build());
+        assertThrows(IllegalArgumentException.class, () -> b.build());
     }
 
     @ParameterizedTest
@@ -49,6 +49,11 @@ public final class GAConfigTest {
     @ValueSource(ints = {-2, -1})
     public void invalidMaxGenerations(int gen) {
         assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(gen));
+    }
+
+    @Test
+    public void invalidStopCriterion() {
+        assertThrows(NullPointerException.class, () -> b.stopCriterion(null));
     }
 
     @ParameterizedTest
@@ -106,6 +111,21 @@ public final class GAConfigTest {
     }
 
     @Test
+    public void noTerminationCriterion() {
+        b.survivalRate(0.5)
+                .populationSize(100)
+                .creation(() -> null)
+                .crossover((a, b) -> b)
+                .crossoverRate(0.6)
+                .mutationRate(0.2)
+                .maximize(d -> 0.0)
+                .mutation(d -> d)
+                .serializer(x -> "example")
+                .quiet();
+        assertThrows(IllegalArgumentException.class, () -> b.build());
+    }
+
+    @Test
     public void noNullsFirstGeneration() {
         assertThrows(NullPointerException.class, () -> b.firstGeneration(null, ""));
         assertThrows(NullPointerException.class, () -> b.firstGeneration("", null));
@@ -129,6 +149,7 @@ public final class GAConfigTest {
     public void fluentSyntax() {
         b.survivalRate(0.5)
                 .populationSize(100)
+                .maxGenerations(100)
                 .creation(() -> null)
                 .crossover((a, b) -> b)
                 .crossoverRate(0.6)
@@ -141,9 +162,27 @@ public final class GAConfigTest {
     }
 
     @Test
+    public void cannotBuildTwoTimes() {
+        b.survivalRate(0.5)
+                .populationSize(100)
+                .maxGenerations(100)
+                .creation(() -> null)
+                .crossover((a, b) -> b)
+                .crossoverRate(0.6)
+                .mutationRate(0.2)
+                .maximize(d -> 0.0)
+                .mutation(d -> d)
+                .serializer(x -> "example")
+                .quiet();
+        b.build();
+        assertThrows(IllegalStateException.class, () -> b.build());
+    }
+
+    @Test
     public void fieldsGetSet() {
         final GeneticAlgorithmConfig<String> c = b.survivalRate(0.5)
                 .populationSize(100)
+                .maxGenerations(100)
                 .creation(() -> null)
                 .crossover((a, b) -> b)
                 .crossoverRate(0.6)
