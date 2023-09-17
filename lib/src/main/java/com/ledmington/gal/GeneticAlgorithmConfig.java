@@ -30,8 +30,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import com.ledmington.gal.GeneticAlgorithm.GeneticAlgorithmState;
-
 public record GeneticAlgorithmConfig<X>(
         int populationSize,
         double survivalRate,
