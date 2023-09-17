@@ -250,7 +250,8 @@ public abstract class GATest {
         assertTrue(
                 // we check just the population of the latest generation because the check is performed before the
                 // "computeScores" phase
-                ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit));
+                ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit),
+                "There should have been at least one element satisfying the given criterion, but none was found");
     }
 
     @ParameterizedTest
