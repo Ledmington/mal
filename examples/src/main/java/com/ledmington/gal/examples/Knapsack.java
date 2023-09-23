@@ -84,7 +84,7 @@ public final class Knapsack {
 
         final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>();
 
-        ga.run(GeneticAlgorithmConfig.<Solution>builder()
+        ga.setState(GeneticAlgorithmConfig.<Solution>builder()
                 .populationSize(10_000)
                 .maxGenerations(100)
                 .survivalRate(0.1)
@@ -172,5 +172,6 @@ public final class Knapsack {
                     return s;
                 })
                 .build());
+        ga.run();
     }
 }

@@ -36,7 +36,7 @@ public final class RandomStrings {
         final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 
         final GeneticAlgorithm<String> ga = new SerialGeneticAlgorithm<>();
-        ga.run(GeneticAlgorithmConfig.<String>builder()
+        ga.setState(GeneticAlgorithmConfig.<String>builder()
                 .populationSize(1000)
                 .survivalRate(0.1)
                 .crossoverRate(0.7)
@@ -81,5 +81,6 @@ public final class RandomStrings {
                     return (double) count;
                 })
                 .build());
+        ga.run();
     }
 }

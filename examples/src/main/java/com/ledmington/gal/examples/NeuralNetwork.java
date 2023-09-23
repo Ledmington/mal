@@ -181,7 +181,7 @@ public final class NeuralNetwork {
 
         final GeneticAlgorithm<Network> ga = new ParallelGeneticAlgorithm<>();
 
-        ga.run(GeneticAlgorithmConfig.<Network>builder()
+        ga.setState(GeneticAlgorithmConfig.<Network>builder()
                 .maxGenerations(100)
                 .populationSize(1000)
                 .survivalRate(0.1)
@@ -243,5 +243,6 @@ public final class NeuralNetwork {
                     return Math.sqrt(score);
                 })
                 .build());
+        ga.run();
     }
 }

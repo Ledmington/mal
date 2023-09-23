@@ -42,6 +42,8 @@ public final class GeneticTsp {
         }
     }
 
+    private record Solution(int[] array) {}
+
     public GeneticTsp() {
 
         final int nCities = 20;
@@ -63,7 +65,7 @@ public final class GeneticTsp {
             }
         }
 
-        final GeneticAlgorithmConfig<int[]> config = GeneticAlgorithmConfig.<int[]>builder()
+        final GeneticAlgorithmConfig<Solution> config = GeneticAlgorithmConfig.<Solution>builder()
                 .populationSize(100)
                 .survivalRate(0.2)
                 .mutationRate(0.2)
@@ -74,7 +76,7 @@ public final class GeneticTsp {
                         v[i] = i;
                     }
                     shuffle(v);
-                    return v;
+                    return new Solution(v);
                 })
                 .crossover((a, b) -> {
                     final int[] result = new int[nCities];
@@ -82,23 +84,23 @@ public final class GeneticTsp {
                     for (int i = 0; i < nCities; i++) {
                         final double choice = rng.nextDouble(0.0, 1.0);
                         if (choice < 0.45) {
-                            result[i] = a[i];
+                            result[i] = a.array()[i];
                         } else if (choice < 0.9) {
-                            result[i] = b[i];
+                            result[i] = b.array()[i];
                         } else {
                             result[i] = rng.nextInt(0, nCities);
                         }
                     }
 
-                    int mistakes = 0;
+                    int mistakes;
                     // we create a new input randomly mixing the two parents, until we get one that is valid
                     do {
                         final int i = rng.nextInt(0, nCities);
                         final double choice = rng.nextDouble(0.0, 1.0);
                         if (choice < 0.45) {
-                            result[i] = a[i];
+                            result[i] = a.array()[i];
                         } else if (choice < 0.9) {
-                            result[i] = b[i];
+                            result[i] = b.array()[i];
                         } else {
                             result[i] = rng.nextInt(0, nCities);
                         }
@@ -107,30 +109,33 @@ public final class GeneticTsp {
                                 (nCities - Arrays.stream(result).distinct().count());
 
                     } while (mistakes > 0);
-                    return result;
+                    return new Solution(result);
                 })
-                .mutation(arr -> {
+                .mutation(x -> {
+                    final int[] y = new int[nCities];
+                    System.arraycopy(x.array(), 0, y, 0, nCities);
                     final int i = rng.nextInt(0, nCities);
                     int j;
                     do {
                         j = rng.nextInt(0, nCities);
                     } while (i == j);
-                    int tmp = arr[i];
-                    arr[i] = arr[j];
-                    arr[j] = tmp;
-                    return arr;
+                    int tmp = y[i];
+                    y[i] = y[j];
+                    y[j] = tmp;
+                    return new Solution(y);
                 })
-                .minimize(arr -> {
+                .minimize(x -> {
                     double s = 0.0;
                     for (int i = 0; i < nCities; i++) {
-                        s += distances[arr[i]][arr[(i + 1) % nCities]];
+                        s += distances[x.array()[i]][x.array()[(i + 1) % nCities]];
                     }
                     // we return it inverted because it is a maximization algorithm for a minimization problem
                     return s;
                 })
                 .build();
 
-        final GeneticAlgorithm<int[]> ga = new SerialGeneticAlgorithm<>();
-        ga.run(config);
+        final GeneticAlgorithm<Solution> ga = new SerialGeneticAlgorithm<>();
+        ga.setState(config);
+        ga.run();
     }
 }
