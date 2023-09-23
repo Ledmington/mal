@@ -68,7 +68,6 @@ public final class GeneticTsp {
                 .survivalRate(0.2)
                 .mutationRate(0.2)
                 .crossoverRate(0.1)
-                .printBest(5)
                 .creation(() -> {
                     final int[] v = new int[nCities];
                     for (int i = 0; i < nCities; i++) {
@@ -128,14 +127,6 @@ public final class GeneticTsp {
                     }
                     // we return it inverted because it is a maximization algorithm for a minimization problem
                     return s;
-                })
-                .serializer(arr -> {
-                    final StringBuilder sb = new StringBuilder();
-                    sb.append(arr[0]);
-                    for (int i = 1; i < nCities; i++) {
-                        sb.append("->").append(arr[i]);
-                    }
-                    return sb.toString();
                 })
                 .build();
 

@@ -187,10 +187,6 @@ public final class NeuralNetwork {
                 .survivalRate(0.1)
                 .crossoverRate(0.8)
                 .mutationRate(0.1)
-                .printBest(5)
-                .printWorst(5)
-                .printMedian()
-                .printAverageScore()
                 .creation(() -> new Network(inputVariables, sizeMiddleLayer, outputVariables, true))
                 .crossover((a, b) -> {
                     final Network son = new Network(inputVariables, sizeMiddleLayer, outputVariables, false);
@@ -246,7 +242,6 @@ public final class NeuralNetwork {
 
                     return Math.sqrt(score);
                 })
-                .serializer(x -> String.format("NN-%08X", x.hashCode()))
                 .build());
     }
 }

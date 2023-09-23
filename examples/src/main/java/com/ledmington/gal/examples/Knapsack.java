@@ -87,10 +87,6 @@ public final class Knapsack {
         ga.run(GeneticAlgorithmConfig.<Solution>builder()
                 .populationSize(10_000)
                 .maxGenerations(100)
-                .printBest(5)
-                .printWorst(5)
-                .printMedian()
-                .printAverageScore()
                 .survivalRate(0.1)
                 .crossoverRate(0.8)
                 .mutationRate(0.1)
@@ -174,15 +170,6 @@ public final class Knapsack {
                         }
                     }
                     return s;
-                })
-                .serializer(x -> {
-                    final StringBuilder sb = new StringBuilder("|");
-                    for (int i = 0; i < nItems; i++) {
-                        if (x.array()[i]) {
-                            sb.append(i).append("|");
-                        }
-                    }
-                    return sb.toString();
                 })
                 .build());
     }
