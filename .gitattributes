@@ -1,2 +1,6 @@
 * text=auto eol=lf
 *.bat eol=crlf
+*.java text
+*.md text
+*.gradle text
+*.properties text

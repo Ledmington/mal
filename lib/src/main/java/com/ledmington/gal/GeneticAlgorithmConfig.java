@@ -17,33 +17,31 @@
 */
 package com.ledmington.gal;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public record GeneticAlgorithmConfig<X>(
         int populationSize,
         double survivalRate,
         double crossoverRate,
         double mutationRate,
-        Predicate<GeneticAlgorithmState<X>> termination,
         Supplier<X> creation,
         BiFunction<X, X, X> crossoverOperator,
         Function<X, X> mutationOperator,
         Function<X, Double> fitnessFunction,
         Comparator<Double> scoreComparator,
-        Function<X, String> serializer,
         Set<X> firstGeneration,
-        Consumer<GeneticAlgorithmState<X>> printer) {
+        long maxTimeMillis,
+        int maxGenerations,
+        Predicate<X> stopCriterion) {
 
     public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
         return new GeneticAlgorithmConfigBuilder<>();
@@ -52,7 +50,7 @@ public record GeneticAlgorithmConfig<X>(
     private static int assertPopulationSizeIsValid(int pop) {
         if (pop < 2) {
             throw new IllegalArgumentException(
-                    String.format("Invalid population size: needs to be >= 2 but was %d", pop));
+                    String.format("Invalid population size: needs to be >= 2 but was %,d", pop));
         }
         return pop;
     }
@@ -60,15 +58,15 @@ public record GeneticAlgorithmConfig<X>(
     private static int assertMaxGenerationsIsValid(int generations) {
         if (generations < 0) {
             throw new IllegalArgumentException(
-                    String.format("Invalid max generations: needs to be >= 0 but was %d", generations));
+                    String.format("Invalid max generations: needs to be >= 0 but was %,d", generations));
         }
         return generations;
     }
 
-    private static int assertMaxSecondsIsValid(int maxSeconds) {
+    private static long assertMaxSecondsIsValid(long maxSeconds) {
         if (maxSeconds < 0) {
             throw new IllegalArgumentException(
-                    String.format("Invalid max seconds: needs to be >= 0 but was %d", maxSeconds));
+                    String.format("Invalid max seconds: needs to be >= 0 but was %,d", maxSeconds));
         }
         return maxSeconds;
     }
@@ -97,14 +95,6 @@ public record GeneticAlgorithmConfig<X>(
         return rate;
     }
 
-    private static int assertPrintBestIsValid(int nBestToPrint) {
-        if (nBestToPrint < 0) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid nBestToPrint: must be > 0 but was %,d\n", nBestToPrint));
-        }
-        return nBestToPrint;
-    }
-
     public static final class GeneticAlgorithmConfigBuilder<X> {
 
         private boolean alreadyBuilt = false;
@@ -112,21 +102,16 @@ public record GeneticAlgorithmConfig<X>(
         private double survivalRate = 0.1;
         private double crossoverRate = 0.7;
         private double mutationRate = 0.1;
-        private Predicate<GeneticAlgorithmState<X>> maxGenerations = null;
-        private Predicate<GeneticAlgorithmState<X>> stopCriterion = null;
-        private Predicate<GeneticAlgorithmState<X>> maxTime = null;
         private Supplier<X> randomCreation = null;
         private BiFunction<X, X, X> crossoverOperator = null;
         private Function<X, X> mutationOperator = null;
         private Function<X, Double> fitnessFunction = null;
         private Comparator<Double> scoreComparator = null;
-        private Function<X, String> serializer = Object::toString;
         private final Set<X> firstGeneration = new HashSet<>();
-        private boolean verbose = false;
-        private int nBestToPrint = 1;
-        private int nWorstToPrint = 0;
-        private boolean printMedian = false;
-        private boolean printAverageScore = false;
+        private long maxTime =
+                Instant.now().plus(1, TimeUnit.HOURS.toChronoUnit()).toEpochMilli();
+        private int maxGenerations = Integer.MAX_VALUE;
+        private Predicate<X> stopCriterion = x -> false;
 
         public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
             assertPopulationSizeIsValid(pop);
@@ -154,19 +139,21 @@ public record GeneticAlgorithmConfig<X>(
 
         public GeneticAlgorithmConfigBuilder<X> maxGenerations(int generations) {
             assertMaxGenerationsIsValid(generations);
-            maxGenerations = state -> state.currentGeneration() >= generations;
+            maxGenerations = generations;
             return this;
         }
 
         public GeneticAlgorithmConfigBuilder<X> stopCriterion(final Predicate<X> criterion) {
             Objects.requireNonNull(criterion, "The stopping criterion cannot be null");
-            stopCriterion = state -> state.population().stream().anyMatch(criterion);
+            stopCriterion = criterion;
             return this;
         }
 
         public GeneticAlgorithmConfigBuilder<X> maxSeconds(int maxSeconds) {
-            final long maxMillis = assertMaxSecondsIsValid(maxSeconds) * 1_000L;
-            maxTime = state -> (System.currentTimeMillis() - state.startTime()) >= maxMillis;
+            assertMaxSecondsIsValid(maxSeconds);
+            maxTime = Instant.now()
+                    .plus(maxSeconds, TimeUnit.SECONDS.toChronoUnit())
+                    .toEpochMilli();
             return this;
         }
 
@@ -202,12 +189,6 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
-        public GeneticAlgorithmConfigBuilder<X> serializer(final Function<X, String> serializer) {
-            Objects.requireNonNull(serializer, "The serializer function cannot be null");
-            this.serializer = serializer;
-            return this;
-        }
-
         @SafeVarargs
         public final GeneticAlgorithmConfigBuilder<X> firstGeneration(final X... objects) {
             for (final X obj : objects) {
@@ -216,103 +197,9 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
-        public GeneticAlgorithmConfigBuilder<X> verbose() {
-            verbose = true;
-            nBestToPrint = 5;
-            nWorstToPrint = 5;
-            printMedian = true;
-            printAverageScore = true;
-            return this;
-        }
-
-        public GeneticAlgorithmConfigBuilder<X> quiet() {
-            verbose = false;
-            return this;
-        }
-
-        public GeneticAlgorithmConfigBuilder<X> printBest(final int nBestToPrint) {
-            verbose = true;
-            this.nBestToPrint = assertPrintBestIsValid(nBestToPrint);
-            return this;
-        }
-
-        public GeneticAlgorithmConfigBuilder<X> printWorst(final int nWorstToPrint) {
-            verbose = true;
-            this.nWorstToPrint = assertPrintBestIsValid(nWorstToPrint);
-            return this;
-        }
-
-        public GeneticAlgorithmConfigBuilder<X> printMedian() {
-            verbose = true;
-            this.printMedian = true;
-            return this;
-        }
-
-        public GeneticAlgorithmConfigBuilder<X> printAverageScore() {
-            verbose = true;
-            this.printAverageScore = true;
-            return this;
-        }
-
         public GeneticAlgorithmConfig<X> build() {
             if (alreadyBuilt) {
                 throw new IllegalStateException("Cannot build the same GeneticAlgorithmConfigBuilder two times");
-            }
-
-            final List<Predicate<GeneticAlgorithmState<X>>> terminationCriteria = Stream.of(
-                            maxGenerations, stopCriterion, maxTime)
-                    .filter(Objects::nonNull)
-                    .toList();
-            if (terminationCriteria.isEmpty()) {
-                throw new IllegalArgumentException("No termination criterion was defined");
-            }
-            final Predicate<GeneticAlgorithmState<X>> termination =
-                    state -> terminationCriteria.stream().anyMatch(p -> p.test(state));
-
-            Consumer<GeneticAlgorithmState<X>> printer;
-            if (!verbose) {
-                printer = s -> {};
-            } else {
-                printer = state -> {
-                    System.out.printf("Generation: %,d\n", state.currentGeneration());
-                    final List<SimpleImmutableEntry<X, Double>> bestPopulation = state.bestOfAllTime().stream()
-                            .map(x ->
-                                    new SimpleImmutableEntry<>(x, state.scores().get(x)))
-                            .sorted((a, b) -> scoreComparator.compare(a.getValue(), b.getValue()))
-                            .toList();
-
-                    for (int i = 0; i < nBestToPrint; i++) {
-                        System.out.printf(
-                                "N. %,4d: '%s' (score: %.6f)\n",
-                                i + 1,
-                                serializer.apply(bestPopulation.get(i).getKey()),
-                                bestPopulation.get(i).getValue());
-                    }
-                    if (printMedian) {
-                        int medianIndex = state.survivingPopulation() / 2;
-                        System.out.printf(
-                                "N. %,4d: '%s' (score: %.6f)\n",
-                                medianIndex,
-                                serializer.apply(bestPopulation.get(medianIndex).getKey()),
-                                bestPopulation.get(medianIndex).getValue());
-                    }
-                    for (int i = state.survivingPopulation() - nWorstToPrint; i < state.survivingPopulation(); i++) {
-                        System.out.printf(
-                                "N. %,4d: '%s' (score: %.6f)\n",
-                                i + 1,
-                                serializer.apply(bestPopulation.get(i).getKey()),
-                                bestPopulation.get(i).getValue());
-                    }
-                    if (printAverageScore) {
-                        System.out.printf(
-                                "Average score: %.6f\n",
-                                bestPopulation.stream()
-                                        .mapToDouble(SimpleImmutableEntry::getValue)
-                                        .average()
-                                        .orElseThrow());
-                    }
-                    System.out.println();
-                };
             }
 
             this.alreadyBuilt = true;
@@ -321,15 +208,15 @@ public record GeneticAlgorithmConfig<X>(
                     survivalRate,
                     crossoverRate,
                     mutationRate,
-                    termination,
                     randomCreation,
                     crossoverOperator,
                     mutationOperator,
                     fitnessFunction,
                     scoreComparator,
-                    serializer,
                     firstGeneration,
-                    printer);
+                    maxTime,
+                    maxGenerations,
+                    stopCriterion);
         }
     }
 
@@ -338,28 +225,28 @@ public record GeneticAlgorithmConfig<X>(
             double survivalRate,
             double crossoverRate,
             double mutationRate,
-            Predicate<GeneticAlgorithmState<X>> termination,
             Supplier<X> creation,
             BiFunction<X, X, X> crossoverOperator,
             Function<X, X> mutationOperator,
             Function<X, Double> fitnessFunction,
             Comparator<Double> scoreComparator,
-            Function<X, String> serializer,
             Set<X> firstGeneration,
-            Consumer<GeneticAlgorithmState<X>> printer) {
+            long maxTimeMillis,
+            int maxGenerations,
+            Predicate<X> stopCriterion) {
         this.populationSize = assertPopulationSizeIsValid(populationSize);
         this.survivalRate = assertSurvivalRateIsValid(survivalRate);
         this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
         this.mutationRate = assertMutationRateIsValid(mutationRate);
-        this.termination = Objects.requireNonNull(termination, "The termination criterion cannot be null");
         this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
         this.crossoverOperator = Objects.requireNonNull(crossoverOperator, "The crossover operator cannot be null");
         this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
         this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
         this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
-        this.serializer = Objects.requireNonNull(serializer, "The serializer function cannot be null");
         this.firstGeneration = Objects.requireNonNull(firstGeneration, "The first generation cannot be null");
-        this.printer = Objects.requireNonNull(printer, "The printer cannot be null");
+        this.maxTimeMillis = assertMaxSecondsIsValid(maxTimeMillis);
+        this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
+        this.stopCriterion = Objects.requireNonNull(stopCriterion, "The stop criterion cannot be null");
 
         if (firstGeneration.size() > populationSize) {
             throw new IllegalArgumentException(String.format(

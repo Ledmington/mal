@@ -100,17 +100,6 @@ public final class GAConfigTest {
     }
 
     @Test
-    public void invalidSerializer() {
-        assertThrows(NullPointerException.class, () -> b.serializer(null));
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {-2, -1})
-    public void invalidPrintBest(int nBestToPrint) {
-        assertThrows(IllegalArgumentException.class, () -> b.printBest(nBestToPrint));
-    }
-
-    @Test
     public void noTerminationCriterion() {
         b.survivalRate(0.5)
                 .populationSize(100)
@@ -119,9 +108,7 @@ public final class GAConfigTest {
                 .crossoverRate(0.6)
                 .mutationRate(0.2)
                 .maximize(d -> 0.0)
-                .mutation(d -> d)
-                .serializer(x -> "example")
-                .quiet();
+                .mutation(d -> d);
         assertThrows(IllegalArgumentException.class, () -> b.build());
     }
 
@@ -156,8 +143,6 @@ public final class GAConfigTest {
                 .mutationRate(0.2)
                 .maximize(d -> 0.0)
                 .mutation(d -> d)
-                .serializer(x -> "example")
-                .quiet()
                 .build();
     }
 
@@ -171,9 +156,7 @@ public final class GAConfigTest {
                 .crossoverRate(0.6)
                 .mutationRate(0.2)
                 .maximize(d -> 0.0)
-                .mutation(d -> d)
-                .serializer(x -> "example")
-                .quiet();
+                .mutation(d -> d);
         b.build();
         assertThrows(IllegalStateException.class, () -> b.build());
     }
@@ -189,8 +172,6 @@ public final class GAConfigTest {
                 .mutationRate(0.2)
                 .maximize(d -> 0.0)
                 .mutation(d -> d)
-                .serializer(x -> "example")
-                .quiet()
                 .build();
 
         assertEquals(100, c.populationSize());

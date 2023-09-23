@@ -23,22 +23,17 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
-import java.util.stream.Stream;
 
 import com.ledmington.gal.GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public abstract class GATest {
@@ -103,7 +98,6 @@ public abstract class GATest {
                 .mutation(Function.identity())
                 .maximize(s -> 0.0)
                 .creation(cs)
-                .quiet()
                 .build());
         assertEquals(populationSize, cs.getCount());
     }
@@ -131,7 +125,6 @@ public abstract class GATest {
                 .mutation(cm)
                 .creation(cs)
                 .maximize(s -> (double) s.length())
-                .quiet()
                 .build());
 
         assertEquals(0, cco.getCount()); // zero crossovers
@@ -158,62 +151,7 @@ public abstract class GATest {
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length())
-                .quiet()
                 .build());
-    }
-
-    private static Stream<Arguments> printConfigurations() {
-        final List<Arguments> args = new LinkedList<>();
-        for (final int best : List.of(0, 1, 2, 3, 4, 5)) {
-            for (final int worst : List.of(0, 1, 2, 3, 4, 5)) {
-                for (final boolean median : List.of(true, false)) {
-                    for (final boolean average : List.of(true, false)) {
-                        args.add(Arguments.of(best, worst, median, average));
-                    }
-                }
-            }
-        }
-        return args.stream();
-    }
-
-    @ParameterizedTest
-    @MethodSource("printConfigurations")
-    public void correctNumberOfLinesOfPrintConfig(
-            int nBestToPrint, int nWorstToPrint, boolean printMedian, boolean printAverage) {
-        final PrintStream oldStdout = System.out;
-        final StringBuilder stdout = new StringBuilder();
-        System.setOut(new PrintStream(new OutputStream() {
-            public void write(int b) {
-                stdout.append(Character.toString(b));
-            }
-        }));
-
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-
-        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
-                .maxGenerations(1)
-                .creation(() -> String.valueOf(rng.nextInt()))
-                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length())
-                .printBest(nBestToPrint)
-                .printWorst(nWorstToPrint);
-        if (printMedian) {
-            gacb.printMedian();
-        }
-        if (printAverage) {
-            gacb.printAverageScore();
-        }
-
-        ga.run(gacb.build());
-
-        System.setOut(oldStdout);
-
-        // the algorithm prints at least one line for each individual plus one for the generation
-        assertEquals(
-                nBestToPrint + nWorstToPrint + (printMedian ? 1 : 0) + (printAverage ? 1 : 0) + 1,
-                stdout.toString().lines().count() - 1, // minus one for the newline
-                " --- STDOUT ---\n" + stdout + "\n --- END STDOUT ---\n");
     }
 
     @ParameterizedTest
@@ -225,12 +163,11 @@ public abstract class GATest {
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length())
-                .quiet();
+                .maximize(s -> (double) s.length());
 
         ga.run(gacb.build());
 
-        assertEquals(generations, ga.getState().currentGeneration());
+        assertEquals(generations, ga.getState().generation());
     }
 
     @ParameterizedTest
@@ -242,8 +179,7 @@ public abstract class GATest {
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length())
-                .quiet();
+                .maximize(s -> (double) s.length());
 
         ga.run(gacb.build());
 
@@ -263,13 +199,13 @@ public abstract class GATest {
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length())
-                .quiet();
+                .maximize(s -> (double) s.length());
 
+        final long startActual = System.currentTimeMillis();
         ga.run(gacb.build());
         final long end = System.currentTimeMillis();
         final long elapsedExpected = seconds * 1_000L;
-        final long elapsedActual = end - ga.getState().startTime();
+        final long elapsedActual = end - startActual;
 
         assertTrue(
                 elapsedActual >= elapsedExpected,

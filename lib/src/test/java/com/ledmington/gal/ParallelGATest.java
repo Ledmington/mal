@@ -73,7 +73,6 @@ public final class ParallelGATest extends GATest {
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length())
-                .quiet()
                 .build());
         final String firstBest = ga.getState().scores().entrySet().stream()
                 .max(Map.Entry.comparingByValue())
@@ -90,7 +89,6 @@ public final class ParallelGATest extends GATest {
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length())
-                .quiet()
                 .build());
         final String secondBest = ga.getState().scores().entrySet().stream()
                 .max(Map.Entry.comparingByValue())

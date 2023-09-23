@@ -17,69 +17,13 @@
 */
 package com.ledmington.gal;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
-public final class GeneticAlgorithmState<X> {
-    private final long startTime;
-    private int generation = 0;
-    private List<X> population;
-    private List<X> nextGeneration;
-    private final Map<X, Double> cachedScores;
-    private final int survivingPopulation;
-    private final Set<X> bestOfAllTime; // for optimization
-
-    public GeneticAlgorithmState(
-            final List<X> population,
-            final List<X> nextGeneration,
-            final Map<X, Double> cachedScores,
-            final int survivors) {
-        this.startTime = System.currentTimeMillis();
-        this.population = Objects.requireNonNull(population);
-        this.nextGeneration = Objects.requireNonNull(nextGeneration);
-        this.cachedScores = Objects.requireNonNull(cachedScores);
-        this.survivingPopulation = survivors;
-        bestOfAllTime = new LinkedHashSet<>(survivors * 2, 1.0f);
-    }
-
-    public long startTime() {
-        return startTime;
-    }
-
-    public List<X> population() {
-        return population;
-    }
-
-    public List<X> nextGeneration() {
-        return nextGeneration;
-    }
-
-    public Map<X, Double> scores() {
-        return cachedScores;
-    }
-
-    public int survivingPopulation() {
-        return survivingPopulation;
-    }
-
-    public Set<X> bestOfAllTime() {
-        return bestOfAllTime;
-    }
-
-    public void swapPopulations() {
-        final List<X> tmp = population;
-        population = nextGeneration;
-        nextGeneration = tmp;
-    }
-
-    public int currentGeneration() {
-        return generation;
-    }
-
-    public void incrementGeneration() {
-        generation++;
-    }
-}
+public record GeneticAlgorithmState<X>(
+        int generation,
+        List<X> population,
+        Map<X, Double> scores,
+        int mutations,
+        int crossovers,
+        int randomCreations) {}
