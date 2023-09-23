@@ -192,14 +192,23 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         nextGeneration = tmp;
     }
 
+    /**
+     * Checks if the algorithm needs to terminate.
+     *
+     * @return True if at least one more generation can be done.
+     */
+    private boolean checkTerminationConditions(final GeneticAlgorithmConfig<X> config) {
+        return (System.currentTimeMillis() - startTime) < config.maxTimeMillis()
+                && generation < config.maxGenerations()
+                && population.stream().noneMatch(config.stopCriterion());
+    }
+
     public void run(final GeneticAlgorithmConfig<X> config) {
         resetState(config);
 
         initialCreation(config);
 
-        while ((System.currentTimeMillis() - startTime) < config.maxTimeMillis()
-                && generation < config.maxGenerations()
-                && population.stream().noneMatch(config.stopCriterion())) {
+        while (checkTerminationConditions(config)) {
             computeScores(config);
 
             elitism(config);
