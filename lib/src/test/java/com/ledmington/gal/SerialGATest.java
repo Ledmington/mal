@@ -48,13 +48,14 @@ public final class SerialGATest extends GATest {
         rng = RandomGeneratorFactory.getDefault().create(seed);
         final RandomGenerator finalRNG1 = rng;
         ga = new SerialGeneticAlgorithm<>(rng);
-        ga.run(GeneticAlgorithmConfig.<String>builder()
+        ga.setState(GeneticAlgorithmConfig.<String>builder()
                 .maxGenerations(10)
                 .creation(() -> String.valueOf(finalRNG1.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length())
                 .build());
+        ga.run();
         final String firstBest = ga.getState().scores().entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .orElseThrow()
@@ -63,13 +64,14 @@ public final class SerialGATest extends GATest {
         rng = RandomGeneratorFactory.getDefault().create(seed);
         final RandomGenerator finalRNG2 = rng;
         ga = new SerialGeneticAlgorithm<>(rng);
-        ga.run(GeneticAlgorithmConfig.<String>builder()
+        ga.setState(GeneticAlgorithmConfig.<String>builder()
                 .maxGenerations(10)
                 .creation(() -> String.valueOf(finalRNG2.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length())
                 .build());
+        ga.run();
         final String secondBest = ga.getState().scores().entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .orElseThrow()

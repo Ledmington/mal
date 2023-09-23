@@ -33,6 +33,7 @@ import java.util.random.RandomGeneratorFactory;
 public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
     protected final RandomGenerator rng;
+    protected GeneticAlgorithmConfig<X> config = null;
     protected long startTime;
     private int generation = 0;
     protected List<X> population;
@@ -67,7 +68,8 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
                 randomCreations);
     }
 
-    protected void resetState(final GeneticAlgorithmConfig<X> config) {
+    public void setState(final GeneticAlgorithmConfig<X> config) {
+        this.config = config;
         population = new ArrayList<>(config.populationSize());
         nextGeneration = new ArrayList<>(config.populationSize());
         cachedScores = new HashMap<>(config.populationSize(), 1.0f);
@@ -77,14 +79,14 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         cachedScoresComparator = (a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b));
     }
 
-    protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
+    protected void initialCreation() {
         population.addAll(config.firstGeneration());
         while (population.size() < config.populationSize()) {
             population.add(config.creation().get());
         }
     }
 
-    protected void computeScores(final GeneticAlgorithmConfig<X> config) {
+    protected void computeScores() {
         for (final X x : population) {
             if (!cachedScores.containsKey(x)) {
                 cachedScores.put(x, config.fitnessFunction().apply(x));
@@ -92,7 +94,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         }
     }
 
-    protected void elitism(final GeneticAlgorithmConfig<X> config) {
+    protected void elitism() {
         if (bestOfAllTime.isEmpty()) {
             // the first time compute the last N best solutions from the global
             // Map of scores
@@ -143,7 +145,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         }
     }
 
-    protected int performCrossovers(final GeneticAlgorithmConfig<X> config) {
+    protected int performCrossovers() {
         int c = 0;
         final Supplier<X> weightedRandom = Utils.weightedChoose(population, x -> cachedScores.get(x), rng);
 
@@ -163,7 +165,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         return c;
     }
 
-    protected int performMutations(final GeneticAlgorithmConfig<X> config) {
+    protected int performMutations() {
         int m = 0;
 
         for (int i = 0; i < nextGeneration.size(); i++) {
@@ -176,7 +178,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
         return m;
     }
 
-    protected void addRandomCreations(final GeneticAlgorithmConfig<X> config, int randomCreations) {
+    protected void addRandomCreations(int randomCreations) {
         for (int i = 0; i < randomCreations; i++) {
             nextGeneration.add(config.creation().get());
         }
@@ -197,29 +199,27 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
      *
      * @return True if at least one more generation can be done.
      */
-    private boolean checkTerminationConditions(final GeneticAlgorithmConfig<X> config) {
+    private boolean checkTerminationConditions() {
         return (System.currentTimeMillis() - startTime) < config.maxTimeMillis()
                 && generation < config.maxGenerations()
                 && population.stream().noneMatch(config.stopCriterion());
     }
 
-    public void run(final GeneticAlgorithmConfig<X> config) {
-        resetState(config);
+    public void run() {
+        initialCreation();
 
-        initialCreation(config);
+        while (checkTerminationConditions()) {
+            computeScores();
 
-        while (checkTerminationConditions(config)) {
-            computeScores(config);
+            elitism();
 
-            elitism(config);
+            crossovers = performCrossovers();
 
-            crossovers = performCrossovers(config);
-
-            mutations = performMutations(config);
+            mutations = performMutations();
 
             randomCreations = config.populationSize() - survivingPopulation - crossovers;
 
-            addRandomCreations(config, randomCreations);
+            addRandomCreations(randomCreations);
 
             if (population.size() != config.populationSize() || nextGeneration.size() != config.populationSize()) {
                 throw new IllegalStateException(String.format(

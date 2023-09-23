@@ -91,7 +91,7 @@ public abstract class GATest {
     @ValueSource(ints = {10, 20, 30, 40, 50, 60, 70, 80, 90})
     public void zeroGenerationsMeansOnlyCreation(final int populationSize) {
         final CountingSupplier cs = new CountingSupplier();
-        ga.run(GeneticAlgorithmConfig.<String>builder()
+        ga.setState(GeneticAlgorithmConfig.<String>builder()
                 .populationSize(populationSize)
                 .maxGenerations(0)
                 .crossover((a, b) -> b)
@@ -99,6 +99,7 @@ public abstract class GATest {
                 .maximize(s -> 0.0)
                 .creation(cs)
                 .build());
+        ga.run();
         assertEquals(populationSize, cs.getCount());
     }
 
@@ -115,7 +116,7 @@ public abstract class GATest {
         final CountingMutator cm = new CountingMutator();
         final CountingCrossoverOperator cco = new CountingCrossoverOperator();
 
-        ga.run(GeneticAlgorithmConfig.<String>builder()
+        ga.setState(GeneticAlgorithmConfig.<String>builder()
                 .populationSize(maxPopulation)
                 .maxGenerations(generations)
                 .survivalRate(1e-6)
@@ -126,6 +127,7 @@ public abstract class GATest {
                 .creation(cs)
                 .maximize(s -> (double) s.length())
                 .build());
+        ga.run();
 
         assertEquals(0, cco.getCount()); // zero crossovers
         assertEquals(0, cm.getCount()); // zero mutations
@@ -145,13 +147,14 @@ public abstract class GATest {
 
         final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-        ga.run(GeneticAlgorithmConfig.<String>builder()
+        ga.setState(GeneticAlgorithmConfig.<String>builder()
                 .maxGenerations(100)
                 .creation(() -> String.valueOf(rng.nextInt()))
                 .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length())
                 .build());
+        ga.run();
     }
 
     @ParameterizedTest
@@ -165,7 +168,8 @@ public abstract class GATest {
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length());
 
-        ga.run(gacb.build());
+        ga.setState(gacb.build());
+        ga.run();
 
         assertEquals(generations, ga.getState().generation());
     }
@@ -181,7 +185,8 @@ public abstract class GATest {
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length());
 
-        ga.run(gacb.build());
+        ga.setState(gacb.build());
+        ga.run();
 
         assertTrue(
                 // we check just the population of the latest generation because the check is performed before the
@@ -201,8 +206,10 @@ public abstract class GATest {
                 .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
                 .maximize(s -> (double) s.length());
 
+        ga.setState(gacb.build());
+
         final long startActual = System.currentTimeMillis();
-        ga.run(gacb.build());
+        ga.run();
         final long end = System.currentTimeMillis();
         final long elapsedExpected = seconds * 1_000L;
         final long elapsedActual = end - startActual;

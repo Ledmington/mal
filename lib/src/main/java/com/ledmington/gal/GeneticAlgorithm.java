@@ -19,7 +19,9 @@ package com.ledmington.gal;
 
 public interface GeneticAlgorithm<X> {
 
+    void setState(final GeneticAlgorithmConfig<X> config);
+
     GeneticAlgorithmState<X> getState();
 
-    void run(final GeneticAlgorithmConfig<X> config);
+    void run();
 }

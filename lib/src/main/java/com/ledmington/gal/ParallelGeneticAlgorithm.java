@@ -85,7 +85,8 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         tasks.clear();
     }
 
-    protected void resetState(final GeneticAlgorithmConfig<X> config) {
+    public void setState(final GeneticAlgorithmConfig<X> config) {
+        this.config = config;
         population = new ArrayList<>(config.populationSize());
         nextGeneration = new ArrayList<>(config.populationSize());
         cachedScores = new ConcurrentHashMap<>(config.populationSize(), 1.0f);
@@ -102,7 +103,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         }
     }
 
-    protected void initialCreation(final GeneticAlgorithmConfig<X> config) {
+    protected void initialCreation() {
         int i = 0;
         for (final X obj : config.firstGeneration()) {
             population.set(i, obj);
@@ -116,7 +117,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         waitAll(tasks);
     }
 
-    protected void computeScores(final GeneticAlgorithmConfig<X> config) {
+    protected void computeScores() {
         for (final X x : population) {
             if (!cachedScores.containsKey(x)) {
                 tasks.add(executor.submit(
@@ -127,7 +128,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         waitAll(tasks);
     }
 
-    protected void elitism(final GeneticAlgorithmConfig<X> config) {
+    protected void elitism() {
         if (bestOfAllTime.isEmpty()) {
             // the first time compute the last N best solutions from the global
             // Map of scores
@@ -165,7 +166,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         }
     }
 
-    protected int performCrossovers(final GeneticAlgorithmConfig<X> config) {
+    protected int performCrossovers() {
         int crossovers = 0;
         nextGenerationSize = new AtomicInteger(survivingPopulation);
         final Supplier<X> weightedRandom = Utils.weightedChoose(population, x -> cachedScores.get(x), rng);
@@ -192,7 +193,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         return crossovers;
     }
 
-    protected int performMutations(final GeneticAlgorithmConfig<X> config) {
+    protected int performMutations() {
         int mutations = 0;
 
         for (int i = 0; i < nextGenerationSize.get(); i++) {
@@ -209,7 +210,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
         return mutations;
     }
 
-    protected void addRandomCreations(final GeneticAlgorithmConfig<X> config, int randomCreations) {
+    protected void addRandomCreations(int randomCreations) {
         for (int i = 0; i < randomCreations; i++) {
             tasks.add(executor.submit(() -> nextGeneration.set(
                     nextGenerationSize.getAndIncrement(), config.creation().get())));
