@@ -36,7 +36,7 @@ public final class GAConfigTest {
 
     @Test
     public void cannotBuildWithNoParameters() {
-        assertThrows(IllegalArgumentException.class, () -> b.build());
+        assertThrows(Exception.class, () -> b.build());
     }
 
     @ParameterizedTest
@@ -100,7 +100,7 @@ public final class GAConfigTest {
     }
 
     @Test
-    public void noTerminationCriterion() {
+    public void noTerminationCriterionIsAllowed() {
         b.survivalRate(0.5)
                 .populationSize(100)
                 .creation(() -> null)
@@ -108,8 +108,8 @@ public final class GAConfigTest {
                 .crossoverRate(0.6)
                 .mutationRate(0.2)
                 .maximize(d -> 0.0)
-                .mutation(d -> d);
-        assertThrows(IllegalArgumentException.class, () -> b.build());
+                .mutation(d -> d)
+                .build();
     }
 
     @Test

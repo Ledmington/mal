@@ -151,9 +151,7 @@ public record GeneticAlgorithmConfig<X>(
 
         public GeneticAlgorithmConfigBuilder<X> maxSeconds(int maxSeconds) {
             assertMaxSecondsIsValid(maxSeconds);
-            maxTime = Instant.now()
-                    .plus(maxSeconds, TimeUnit.SECONDS.toChronoUnit())
-                    .toEpochMilli();
+            maxTime = maxSeconds * 1_000L;
             return this;
         }
 
