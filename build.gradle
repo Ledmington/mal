@@ -1,9 +1,9 @@
 plugins {
     id 'java'
     id 'jacoco'
-    id 'com.adarshr.test-logger' version '3.2.0'
-    id 'com.diffplug.spotless' version '6.20.0'
-    id 'com.github.ben-manes.versions' version '0.47.0'
+    id 'com.adarshr.test-logger' version '4.0.0'
+    id 'com.diffplug.spotless' version '6.25.0'
+    id 'com.github.ben-manes.versions' version '0.51.0'
 }
 
 static def path(String... args) {
@@ -17,7 +17,7 @@ String appDescription = 'A library for genetic algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
 
-ext.junitVersion = "5.10.0"
+ext.junitVersion = "5.10.2"
 
 allprojects {
     apply plugin: 'java'
@@ -113,7 +113,7 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
         setEncoding('utf-8')
-        palantirJavaFormat('2.35.0')
+        palantirJavaFormat('2.41.0')
 
         // check https://javadoc.io/doc/com.diffplug.spotless/spotless-plugin-gradle/latest/com/diffplug/gradle/spotless/JavaExtension.html
         importOrder('java', 'javax', 'javafx', 'com', 'com.ledmington', 'org', group as String)
