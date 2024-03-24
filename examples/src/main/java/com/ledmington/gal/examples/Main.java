@@ -30,7 +30,9 @@ public final class Main {
             "Knapsack",
             Knapsack::new,
             "NeuralNetwork",
-            NeuralNetwork::new);
+            NeuralNetwork::new,
+            "Diet",
+            Diet::new);
 
     private static void printAvailableExamples() {
         System.out.println("These are the available examples:");

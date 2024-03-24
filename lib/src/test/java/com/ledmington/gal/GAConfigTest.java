@@ -20,6 +20,8 @@ package com.ledmington.gal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -125,6 +127,17 @@ public final class GAConfigTest {
     public void invalidFirstGeneration() {
         b.populationSize(2)
                 .firstGeneration("a", "b", "c")
+                .creation(() -> null)
+                .crossover((a, b) -> b)
+                .mutation(d -> d)
+                .maximize(s -> 0.0);
+        assertThrows(IllegalArgumentException.class, () -> b.build());
+    }
+
+    @Test
+    public void invalidFirstGenerationSet() {
+        b.populationSize(2)
+                .firstGeneration(Set.of("a", "b", "c"))
                 .creation(() -> null)
                 .crossover((a, b) -> b)
                 .mutation(d -> d)

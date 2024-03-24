@@ -195,6 +195,13 @@ public record GeneticAlgorithmConfig<X>(
             return this;
         }
 
+        public GeneticAlgorithmConfigBuilder<X> firstGeneration(final Set<X> objects) {
+            for (final X obj : objects) {
+                this.firstGeneration.add(Objects.requireNonNull(obj));
+            }
+            return this;
+        }
+
         public GeneticAlgorithmConfig<X> build() {
             if (alreadyBuilt) {
                 throw new IllegalStateException("Cannot build the same GeneticAlgorithmConfigBuilder two times");

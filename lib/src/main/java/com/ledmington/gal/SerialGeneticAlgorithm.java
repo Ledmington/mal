@@ -206,6 +206,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
     }
 
     public void run() {
+        generation = 0;
         initialCreation();
 
         while (checkTerminationConditions()) {
