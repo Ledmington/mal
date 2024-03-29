@@ -37,12 +37,13 @@ import com.ledmington.gal.ParallelGeneticAlgorithm;
 public final class Diet {
 
     private enum Food {
-        BANANA("banana", 0.89f, 890.0f, 827.7f, 35.6f, 26.7f),
-        CARROT("carrot", 0.54f, 410.0f, 356.7f, 32.8f, 20.5f),
-        APPLE("apple", 0.94f, 521.978f, 495.8791f, 10.439f, 15.659f),
-        PIZZA("pizza", 5.0f, 2710.0f, 894.3f, 298.1f, 271.0f),
-        STEAK("steak", 15.49f, 2105.882f, 0.0f, 305.882f, 89.411f),
-        LENTILS("lentils", 1.39f, 1175.0f, 200.0f, 293.75f, 21.7f);
+        BANANA("banana", 0.89f, 890.0f, 0.93f, 0.04f, 0.03f),
+        CARROT("carrot", 0.54f, 410.0f, 0.86f, 0.9f, 0.05f),
+        APPLE("apple", 0.94f, 521.978f, 0.2653f, 0.0045f, 0.00317f),
+        PIZZA("pizza", 5.0f, 2710.0f, 0.33f, 0.11f, 0.1f),
+        STEAK("steak", 15.49f, 2105.882f, 0.0f, 0.1452f, 0.0424f),
+        LENTILS("lentils", 1.39f, 1175.0f, 0.1702f, 0.25f, 0.01846f),
+        PARMESAN("parmesan", 10.55f, 4310.0f, 0.003f, 0.3463f, 0.6535f);
 
         private final String name;
         private final float avgPricePerKilo;
@@ -55,9 +56,9 @@ public final class Diet {
                 final String name,
                 final float avgPricePerKilo,
                 final float avgCaloriesPerKilo,
-                final float avgCarbsPerKilo,
-                final float avgProteinsPerKilo,
-                final float avgFatsPerKilo) {
+                final float carbsPercentage,
+                final float proteinsPercentage,
+                final float fatsPercentage) {
             this.name = Objects.requireNonNull(name);
             if (avgPricePerKilo < 0.0f) {
                 throw new IllegalArgumentException("Invalid price per kilo");
@@ -65,20 +66,20 @@ public final class Diet {
             if (avgCaloriesPerKilo < 0.0f) {
                 throw new IllegalArgumentException("Invalid calories per kilo");
             }
-            if (avgCarbsPerKilo < 0.0f) {
-                throw new IllegalArgumentException("Invalid carbs per kilo");
+            if (carbsPercentage < 0.0f || carbsPercentage > 1.0f) {
+                throw new IllegalArgumentException(String.format("Invalid carbs percentage %f", carbsPercentage));
             }
-            if (avgProteinsPerKilo < 0.0f) {
-                throw new IllegalArgumentException("Invalid proteins per kilo");
+            if (proteinsPercentage < 0.0f || proteinsPercentage > 1.0f) {
+                throw new IllegalArgumentException(String.format("Invalid proteins percentage %f", proteinsPercentage));
             }
-            if (avgFatsPerKilo < 0.0f) {
-                throw new IllegalArgumentException("Invalid fats per kilo");
+            if (fatsPercentage < 0.0f || fatsPercentage > 1.0f) {
+                throw new IllegalArgumentException(String.format("Invalid fats percentage %f", fatsPercentage));
             }
             this.avgPricePerKilo = avgPricePerKilo;
             this.avgCaloriesPerKilo = avgCaloriesPerKilo;
-            this.avgCarbsPerKilo = avgCarbsPerKilo;
-            this.avgProteinsPerKilo = avgProteinsPerKilo;
-            this.avgFatsPerKilo = avgFatsPerKilo;
+            this.avgCarbsPerKilo = avgCaloriesPerKilo * carbsPercentage;
+            this.avgProteinsPerKilo = avgCaloriesPerKilo * proteinsPercentage;
+            this.avgFatsPerKilo = avgCaloriesPerKilo * fatsPercentage;
         }
     }
 
@@ -112,10 +113,10 @@ public final class Diet {
         public String toString() {
             final StringBuilder sb = new StringBuilder();
             for (int i = 0; i < quantities.length; i++) {
-                if (quantities[i] == 0.0f) {
+                if (quantities[i] < 1e-3f) { // avoid printing quantities less than 1g
                     continue;
                 }
-                sb.append(String.format("%.2f %s;", quantities[i], Food.values()[i].name));
+                sb.append(String.format("%.3fkg of %s; ", quantities[i], Food.values()[i].name));
             }
             return sb.toString();
         }
@@ -168,8 +169,8 @@ public final class Diet {
                             return new Solution(v);
                         })
                         .minimize(x -> {
-                            final float minCalories = 2000.0f;
-                            final float maxCalories = 3000.0f;
+                            final float minCalories = 2200.0f;
+                            final float maxCalories = 2700.0f;
                             final float minCarbsPercentage = 0.45f;
                             final float maxCarbsPercentage = 0.55f;
                             final float minProteinsPercentage = 0.1f;
@@ -225,11 +226,11 @@ public final class Diet {
 
         final ExecutorService ex =
                 Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(); // ex, rng);
+        final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(ex, rng);
         Set<Solution> g = new HashSet<>();
 
-        for (int i = 0; i < 10; i++) {
-            System.out.printf("Run n.%,d\n", i);
+        for (int it = 0; it < 10; it++) {
+            System.out.printf("Run n.%,d\n", it);
             ga.setState(state.get().firstGeneration(g).build());
             ga.run();
 
@@ -237,7 +238,13 @@ public final class Diet {
             scores.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue())
                     .limit(10)
-                    .forEach(e -> System.out.printf("%s -> %f\n", e.getKey(), e.getValue()));
+                    .forEach(e -> {
+                        double p = 0.0;
+                        for (int i = 0; i < Food.values().length; i++) {
+                            p += e.getKey().get(i) * Food.values()[i].avgPricePerKilo;
+                        }
+                        System.out.printf("%s -> %f (%.2f$)\n", e.getKey(), e.getValue(), p);
+                    });
             g = scores.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue())
                     .limit(10)
