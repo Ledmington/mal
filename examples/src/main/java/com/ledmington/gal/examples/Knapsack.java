@@ -17,8 +17,18 @@
 */
 package com.ledmington.gal.examples;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
+import java.util.stream.Collectors;
 
 import com.ledmington.gal.GeneticAlgorithm;
 import com.ledmington.gal.GeneticAlgorithmConfig;
@@ -37,6 +47,10 @@ public final class Knapsack {
                 h = 31 * h + (b ? 1 : 0);
             }
             cachedHashCode = h;
+        }
+
+        public boolean get(final int i) {
+            return array[i];
         }
 
         public boolean[] array() {
@@ -68,110 +82,149 @@ public final class Knapsack {
             }
             return true;
         }
+
+        public String toString() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            boolean firstElement = true;
+            for (int i = 0; i < array.length; i++) {
+                if (array[i]) {
+                    if (firstElement) {
+                        firstElement = false;
+                    } else {
+                        sb.append(", ");
+                    }
+                    sb.append(String.format("%2d", i));
+                }
+            }
+            sb.append("]");
+            return sb.toString();
+        }
     }
 
     public Knapsack() {
+        final long beginning = System.nanoTime();
         final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
         final int nItems = 100;
-        final int[] weights = new int[nItems];
+        final double[] weights = new double[nItems];
         final double[] values = new double[nItems];
-        final int capacity = 30;
+        final double capacity = 20.0;
 
+        System.out.println("Knapsack data:");
+        System.out.printf("Knapsack's capacity : %.3f\n", capacity);
+        System.out.printf("Number of items : %,d\n", nItems);
+        System.out.printf("Total possible solutions : %.3e\n", new BigDecimal(BigInteger.ONE.shiftLeft(nItems)));
+        System.out.println();
+
+        System.out.println("Items data:");
         for (int i = 0; i < nItems; i++) {
-            weights[i] = rng.nextInt(1, 6);
+            weights[i] = rng.nextDouble(0.1, 6.0);
             values[i] = rng.nextDouble(0.1, 6.0);
+            System.out.printf("%3d: (w: %.3f; v: %.3f)\n", i, weights[i], values[i]);
+        }
+        System.out.println();
+
+        final Supplier<GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<Solution>> state =
+                () -> GeneticAlgorithmConfig.<Solution>builder()
+                        .populationSize(1_000)
+                        .maxGenerations(100)
+                        .survivalRate(0.1)
+                        .crossoverRate(0.7)
+                        .mutationRate(0.2)
+                        .creation(() -> {
+                            final boolean[] v = new boolean[nItems];
+
+                            for (int i = 0; i < nItems; i++) {
+                                v[i] = rng.nextBoolean();
+                            }
+
+                            return new Solution(v);
+                        })
+                        .crossover((a, b) -> {
+                            final boolean[] v = new boolean[nItems];
+
+                            for (int i = 0; i < nItems; i++) {
+                                v[i] = rng.nextBoolean() ? a.get(i) : b.get(i);
+                            }
+
+                            return new Solution(v);
+                        })
+                        .mutation(x -> {
+                            final boolean[] v = new boolean[nItems];
+                            System.arraycopy(x.array(), 0, v, 0, nItems);
+                            final int idx = rng.nextInt(0, nItems);
+                            v[idx] = !v[idx];
+                            return new Solution(v);
+                        })
+                        .maximize(x -> {
+                            double totalWeight = 0;
+                            double s = 0.0;
+                            for (int i = 0; i < nItems; i++) {
+                                if (x.get(i)) {
+                                    s += values[i];
+                                    totalWeight += weights[i];
+                                }
+                            }
+
+                            if (totalWeight > capacity) {
+                                // if the solution is not valid, we give a negative score so that this solution
+                                // will always be considered worse than a valid one but it would still be
+                                // possible to sort invalid solutions
+                                return capacity - totalWeight;
+                            }
+                            return s;
+                        });
+
+        final ExecutorService ex =
+                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(ex, rng);
+        Set<Solution> g = new HashSet<>();
+        final Set<Solution> allSolutions = new HashSet<>();
+
+        for (int it = 0; it < 10; it++) {
+            System.out.printf("Run n.%,d\n", it);
+            ga.setState(state.get().firstGeneration(g).build());
+            ga.run();
+
+            final Map<Solution, Double> scores = ga.getState().scores();
+            allSolutions.addAll(scores.keySet());
+            scores.entrySet().stream()
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .limit(10)
+                    .forEach(e -> {
+                        double totalWeight = 0;
+                        for (int i = 0; i < nItems; i++) {
+                            if (e.getKey().get(i)) {
+                                totalWeight += weights[i];
+                            }
+                        }
+                        System.out.printf(
+                                "%s -> (total-weight: %.3f; total-value: %.3f)\n",
+                                e.getKey(), totalWeight, e.getValue());
+                    });
+            g = scores.entrySet().stream()
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .limit(10)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet());
+            System.out.println();
         }
 
-        final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>();
+        final long end = System.nanoTime();
 
-        ga.setState(GeneticAlgorithmConfig.<Solution>builder()
-                .populationSize(10_000)
-                .maxGenerations(100)
-                .survivalRate(0.1)
-                .crossoverRate(0.8)
-                .mutationRate(0.1)
-                .creation(() -> {
-                    final boolean[] v = new boolean[nItems];
-                    int c = 0;
-                    while (c < capacity) {
-                        int toBeAdded;
-                        do {
-                            toBeAdded = rng.nextInt(0, nItems);
-                        } while (v[toBeAdded]);
+        System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
+        System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
 
-                        if (c + weights[toBeAdded] > capacity) {
-                            break;
-                        }
-
-                        v[toBeAdded] = true;
-                        c += weights[toBeAdded];
-                    }
-                    return new Solution(v);
-                })
-                .crossover((a, b) -> {
-                    // OR the parents together
-                    final boolean[] v = new boolean[nItems];
-                    int c = 0;
-                    for (int i = 0; i < nItems; i++) {
-                        if (a.array()[i] || b.array()[i]) {
-                            v[i] = true;
-                            c += weights[i];
-                        }
-                    }
-
-                    // randomly remove items until the capacity is valid
-                    while (c > capacity) {
-                        int toBeRemoved;
-                        do {
-                            toBeRemoved = rng.nextInt(0, nItems);
-                        } while (!v[toBeRemoved]);
-                        v[toBeRemoved] = false;
-                        c -= weights[toBeRemoved];
-                    }
-
-                    return new Solution(v);
-                })
-                .mutation(x -> {
-                    final boolean[] v = new boolean[nItems];
-                    System.arraycopy(x.array(), 0, v, 0, nItems);
-                    // compute capacity
-                    int c = 0;
-                    for (int i = 0; i < nItems; i++) {
-                        if (v[i]) {
-                            c += weights[i];
-                        }
-                    }
-
-                    // add a random item
-                    int toBeAdded;
-                    do {
-                        toBeAdded = rng.nextInt(0, nItems);
-                    } while (v[toBeAdded]);
-                    v[toBeAdded] = true;
-                    c += weights[toBeAdded];
-
-                    // remove random items until the capacity is valid
-                    while (c > capacity) {
-                        int toBeRemoved;
-                        do {
-                            toBeRemoved = rng.nextInt(0, nItems);
-                        } while (toBeAdded != toBeRemoved && !v[toBeRemoved]);
-                        v[toBeRemoved] = false;
-                        c -= weights[toBeRemoved];
-                    }
-
-                    return new Solution(v);
-                })
-                .maximize(x -> {
-                    double s = 0.0;
-                    for (int i = 0; i < nItems; i++) {
-                        if (x.array()[i]) {
-                            s += values[i];
-                        }
-                    }
-                    return s;
-                })
-                .build());
-        ga.run();
+        if (!ex.isShutdown()) {
+            ex.shutdown();
+        }
+        while (!ex.isTerminated()) {
+            try {
+                if (ex.awaitTermination(1, TimeUnit.SECONDS)) {
+                    break;
+                }
+            } catch (final InterruptedException ignored) {
+            }
+        }
     }
 }

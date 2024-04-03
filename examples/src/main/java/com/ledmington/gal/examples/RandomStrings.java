@@ -17,11 +17,13 @@
 */
 package com.ledmington.gal.examples;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.ledmington.gal.GeneticAlgorithm;
 import com.ledmington.gal.GeneticAlgorithmConfig;
@@ -29,58 +31,83 @@ import com.ledmington.gal.SerialGeneticAlgorithm;
 
 public final class RandomStrings {
     public RandomStrings() {
+        final long beginning = System.nanoTime();
         final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-        final String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !";
-        final String targetString = "I love Genetic Algorithms!";
-        final int length = targetString.length();
+        final String alphabet =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-_@#[]{}()!?='\"+*/";
+        final String targetString =
+                "This library for Genetic Algorithms is absolutely fantastic! I cannot wait to try and use it with Java 17 and Gradle 8.7! Now let's write another time just to have longer strings and, therefore, add artificial complexity to the problem.";
+        final int targetLength = targetString.length();
         final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 
-        final GeneticAlgorithm<String> ga = new SerialGeneticAlgorithm<>();
-        ga.setState(GeneticAlgorithmConfig.<String>builder()
-                .populationSize(1000)
-                .survivalRate(0.1)
-                .crossoverRate(0.7)
-                .mutationRate(0.01)
-                .maxGenerations(1000)
-                .creation(() -> Stream.generate(randomChar)
-                        .limit(length)
-                        .map(Object::toString)
-                        .collect(Collectors.joining()))
-                .crossover((a, b) -> {
-                    final StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < targetString.length(); i++) {
-                        final double choice = rng.nextDouble(0.0, 1.0);
-                        if (choice < 0.45) {
-                            // take char from parent A
-                            sb.append(a.charAt(i));
-                        } else if (choice < 0.9) {
-                            // take char from parent B
-                            sb.append(b.charAt(i));
-                        } else {
-                            // add random character
-                            sb.append(randomChar.get());
-                        }
-                    }
-                    return sb.toString();
-                })
-                .mutation(s -> {
-                    final int idx = rng.nextInt(0, length);
-                    return s.substring(0, idx) + randomChar.get() + s.substring(idx + 1, length);
-                })
-                .maximize(s -> {
-                    if (s.length() != length) {
-                        throw new IllegalArgumentException(
-                                String.format("Invalid length: was %d but should have been %d", s.length(), length));
-                    }
-                    int count = 0;
-                    for (int i = 0; i < s.length(); i++) {
-                        if (s.charAt(i) == targetString.charAt(i)) {
-                            count++;
-                        }
-                    }
-                    return (double) count;
-                })
-                .build());
-        ga.run();
+        final Supplier<GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<String>> state =
+                () -> GeneticAlgorithmConfig.<String>builder()
+                        .populationSize(1_000)
+                        .maxGenerations(100)
+                        .survivalRate(0.1)
+                        .crossoverRate(0.7)
+                        .mutationRate(0.2)
+                        .creation(() -> {
+                            final StringBuilder sb = new StringBuilder();
+                            for (int i = 0; i < targetLength; i++) {
+                                sb.append(randomChar.get());
+                            }
+                            return sb.toString();
+                        })
+                        .crossover((a, b) -> {
+                            final StringBuilder sb = new StringBuilder();
+                            for (int i = 0; i < targetLength; i++) {
+                                sb.append(rng.nextBoolean() ? a.charAt(i) : b.charAt(i));
+                            }
+                            return sb.toString();
+                        })
+                        .mutation(s -> {
+                            final int idx = rng.nextInt(0, targetLength);
+                            return s.substring(0, idx) + randomChar.get() + s.substring(idx + 1, targetLength);
+                        })
+                        .maximize(s -> {
+                            if (s.length() != targetLength) {
+                                throw new IllegalArgumentException(String.format(
+                                        "Invalid length: was %d but should have been %d", s.length(), targetLength));
+                            }
+                            int count = 0;
+                            for (int i = 0; i < targetLength; i++) {
+                                if (s.charAt(i) == targetString.charAt(i)) {
+                                    count++;
+                                }
+                            }
+                            return (double) count;
+                        })
+                        .stopCriterion(s -> s.equals(targetString));
+
+        final GeneticAlgorithm<String> ga = new SerialGeneticAlgorithm<>(rng);
+        Set<String> g = new HashSet<>();
+        final Set<String> allSolutions = new HashSet<>();
+
+        for (int it = 0; it < 10; it++) {
+            System.out.printf("Run n.%,d\n", it);
+            ga.setState(state.get().firstGeneration(g).build());
+            ga.run();
+
+            final Map<String, Double> scores = ga.getState().scores();
+            allSolutions.addAll(scores.keySet());
+            scores.entrySet().stream()
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .limit(10)
+                    .forEach(e -> {
+                        System.out.printf("%s -> %f\n", e.getKey(), e.getValue());
+                    });
+            g = scores.entrySet().stream()
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .limit(10)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet());
+            System.out.println();
+        }
+
+        final long end = System.nanoTime();
+
+        System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
+        System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
     }
 }

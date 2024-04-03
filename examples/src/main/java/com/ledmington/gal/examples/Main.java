@@ -25,7 +25,7 @@ public final class Main {
     private static final Map<String, Runnable> examples = Map.of(
             "GeneticTsp",
             GeneticTsp::new,
-            "RandomString",
+            "RandomStrings",
             RandomStrings::new,
             "Knapsack",
             Knapsack::new,

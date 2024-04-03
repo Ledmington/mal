@@ -136,6 +136,7 @@ public final class Diet {
     }
 
     public Diet() {
+        final long beginning = System.nanoTime();
         final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
         final Supplier<GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<Solution>> state =
@@ -228,6 +229,7 @@ public final class Diet {
                 Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(ex, rng);
         Set<Solution> g = new HashSet<>();
+        final Set<Solution> allSolutions = new HashSet<>();
 
         for (int it = 0; it < 10; it++) {
             System.out.printf("Run n.%,d\n", it);
@@ -235,6 +237,7 @@ public final class Diet {
             ga.run();
 
             final Map<Solution, Double> scores = ga.getState().scores();
+            allSolutions.addAll(scores.keySet());
             scores.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue())
                     .limit(10)
@@ -253,10 +256,19 @@ public final class Diet {
             System.out.println();
         }
 
-        while (!ex.isShutdown()) {
+        final long end = System.nanoTime();
+
+        System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
+        System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
+
+        if (!ex.isShutdown()) {
             ex.shutdown();
+        }
+        while (!ex.isTerminated()) {
             try {
-                ex.awaitTermination(1, TimeUnit.SECONDS);
+                if (ex.awaitTermination(1, TimeUnit.SECONDS)) {
+                    break;
+                }
             } catch (final InterruptedException ignored) {
             }
         }
