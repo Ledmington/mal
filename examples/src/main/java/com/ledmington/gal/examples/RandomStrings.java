@@ -45,34 +45,61 @@ public final class RandomStrings {
                         .populationSize(1_000)
                         .maxGenerations(100)
                         .survivalRate(0.1)
-                        .crossoverRate(0.7)
-                        .mutationRate(0.2)
+                        .crossoverRate(0.3)
+                        .mutationRate(0.7)
                         .creation(() -> {
                             final StringBuilder sb = new StringBuilder();
-                            for (int i = 0; i < targetLength; i++) {
+                            final int len = rng.nextInt(1, targetLength);
+                            for (int i = 0; i < len; i++) {
                                 sb.append(randomChar.get());
                             }
                             return sb.toString();
                         })
                         .crossover((a, b) -> {
                             final StringBuilder sb = new StringBuilder();
-                            for (int i = 0; i < targetLength; i++) {
+                            final int minLength = Math.min(a.length(), b.length());
+                            final int maxLength = Math.max(a.length(), b.length());
+                            final int len = (minLength == maxLength) ? minLength : rng.nextInt(minLength, maxLength);
+                            int i = 0;
+                            for (; i < minLength; i++) {
                                 sb.append(rng.nextBoolean() ? a.charAt(i) : b.charAt(i));
+                            }
+                            for (; i < len; i++) {
+                                if (i < a.length()) {
+                                    sb.append(a.charAt(i));
+                                } else {
+                                    sb.append(b.charAt(i));
+                                }
                             }
                             return sb.toString();
                         })
                         .mutation(s -> {
-                            final int idx = rng.nextInt(0, targetLength);
-                            return s.substring(0, idx) + randomChar.get() + s.substring(idx + 1, targetLength);
+                            enum Choice {
+                                ADD,
+                                REMOVE,
+                                REPLACE
+                            };
+                            Choice choice =
+                                    s.isEmpty() ? Choice.ADD : Choice.values()[rng.nextInt(0, Choice.values().length)];
+                            return switch (choice) {
+                                case ADD -> // we add a new character at the end
+                                s + randomChar.get();
+                                case REMOVE -> {
+                                    // we remove a random character
+                                    final int idx = rng.nextInt(0, s.length());
+                                    yield s.substring(0, idx) + s.substring(idx + 1);
+                                }
+                                case REPLACE -> {
+                                    // we replace a character with a different one
+                                    final int idx = rng.nextInt(0, s.length());
+                                    yield s.substring(0, idx) + randomChar.get() + s.substring(idx + 1);
+                                }
+                            };
                         })
-                        .maximize(s -> {
-                            if (s.length() != targetLength) {
-                                throw new IllegalArgumentException(String.format(
-                                        "Invalid length: was %d but should have been %d", s.length(), targetLength));
-                            }
-                            int count = 0;
-                            for (int i = 0; i < targetLength; i++) {
-                                if (s.charAt(i) == targetString.charAt(i)) {
+                        .minimize(s -> {
+                            int count = Math.abs(targetLength - s.length());
+                            for (int i = 0; i < Math.min(targetLength, s.length()); i++) {
+                                if (s.charAt(i) != targetString.charAt(i)) {
                                     count++;
                                 }
                             }
@@ -84,7 +111,7 @@ public final class RandomStrings {
         Set<String> g = new HashSet<>();
         final Set<String> allSolutions = new HashSet<>();
 
-        for (int it = 0; it < 10; it++) {
+        for (int it = 0; it < 100; it++) {
             System.out.printf("Run n.%,d\n", it);
             ga.setState(state.get().firstGeneration(g).build());
             ga.run();
@@ -92,13 +119,13 @@ public final class RandomStrings {
             final Map<String, Double> scores = ga.getState().scores();
             allSolutions.addAll(scores.keySet());
             scores.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .sorted(Map.Entry.comparingByValue())
                     .limit(10)
                     .forEach(e -> {
                         System.out.printf("%s -> %f\n", e.getKey(), e.getValue());
                     });
             g = scores.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .sorted(Map.Entry.comparingByValue())
                     .limit(10)
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());

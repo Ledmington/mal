@@ -157,22 +157,22 @@ public final class Knapsack {
                             return new Solution(v);
                         })
                         .maximize(x -> {
-                            double totalWeight = 0;
+                            double totalWeight = 0.0;
                             double s = 0.0;
+                            int n = 0;
                             for (int i = 0; i < nItems; i++) {
                                 if (x.get(i)) {
                                     s += values[i];
                                     totalWeight += weights[i];
+                                    n++;
                                 }
                             }
 
+                            final double validSolutionPrize = 1_000.0;
                             if (totalWeight > capacity) {
-                                // if the solution is not valid, we give a negative score so that this solution
-                                // will always be considered worse than a valid one but it would still be
-                                // possible to sort invalid solutions
-                                return capacity - totalWeight;
+                                return (double) (nItems - n);
                             }
-                            return s;
+                            return s + validSolutionPrize;
                         });
 
         final ExecutorService ex =
