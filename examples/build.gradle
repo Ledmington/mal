@@ -15,7 +15,7 @@ String appName = "gal-examples"
 String fatJarBaseName = "${appName}"
 String fatJarName = "${fatJarBaseName}.jar"
 String fatJarPath = path("${buildDir}", "libs", "${fatJarName}")
-String mainClassName = "com.ledmington.gal.examples.Main"
+String mainClassName = "com.ledmington.mal.examples.Main"
 
 repositories {
     mavenCentral()
@@ -26,7 +26,7 @@ dependencies {
 }
 
 application {
-    mainClass = "com.ledmington.gal.examples.Main"
+    mainClass = "com.ledmington.mal.examples.Main"
 }
 
 test.enabled = false

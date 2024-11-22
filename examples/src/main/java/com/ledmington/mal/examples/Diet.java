@@ -1,5 +1,5 @@
 /*
-* genetic-algorithms-library - A library for genetic algorithms.
+* minimization-algorithms-library - A collection of minimization algorithms.
 * Copyright (C) 2023-2024 Filippo Barbari <filippo.barbari@gmail.com>
 *
 * This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.gal.examples;
+package com.ledmington.mal.examples;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,9 +30,9 @@ import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
 
-import com.ledmington.gal.GeneticAlgorithm;
-import com.ledmington.gal.GeneticAlgorithmConfig;
-import com.ledmington.gal.ParallelGeneticAlgorithm;
+import com.ledmington.mal.GeneticAlgorithm;
+import com.ledmington.mal.GeneticAlgorithmConfig;
+import com.ledmington.mal.ParallelGeneticAlgorithm;
 
 public final class Diet {
 

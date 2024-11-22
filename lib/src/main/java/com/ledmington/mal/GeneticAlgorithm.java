@@ -1,5 +1,5 @@
 /*
-* genetic-algorithms-library - A library for genetic algorithms.
+* minimization-algorithms-library - A collection of minimization algorithms.
 * Copyright (C) 2023-2024 Filippo Barbari <filippo.barbari@gmail.com>
 *
 * This program is free software: you can redistribute it and/or modify
@@ -15,15 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.gal;
+package com.ledmington.mal;
 
-import java.util.List;
-import java.util.Map;
+public interface GeneticAlgorithm<X> {
 
-public record GeneticAlgorithmState<X>(
-        int generation,
-        List<X> population,
-        Map<X, Double> scores,
-        int mutations,
-        int crossovers,
-        int randomCreations) {}
+    void setState(final GeneticAlgorithmConfig<X> config);
+
+    GeneticAlgorithmState<X> getState();
+
+    void run();
+}

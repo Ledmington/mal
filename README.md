@@ -1,4 +1,4 @@
-# Genetic Algorithm Library
+# Minimization Algorithm Library
 
 ## Features
 - Easy parametrization with Builders
@@ -8,7 +8,7 @@
 ## Requirements
 To build:
 - gradle
-- java >= 17
+- java >= 21
 
 ## Hints for usage/performance
 ### 1) Cache `hashCode`
@@ -19,6 +19,3 @@ For a better experience, it is recommended to create a Supplier of small/quick c
 2. `run`
 3. `getState` to check the results
 4. Return to step 1 if the results are not "good enough"
-
-## Future ideas
-- Genealogic tree of solutions

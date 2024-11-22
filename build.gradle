@@ -11,9 +11,9 @@ static def path(String... args) {
 }
 
 // Tunables
-String appName = 'genetic-algorithms-library'
+String appName = 'minimization-algorithms-library'
 String version = '0.1.0'
-String appDescription = 'A library for genetic algorithms.'
+String appDescription = 'A collection of minimization algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
 
