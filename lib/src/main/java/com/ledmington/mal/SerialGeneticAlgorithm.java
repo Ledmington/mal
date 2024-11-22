@@ -200,9 +200,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 	 * @return True if at least one more generation can be done.
 	 */
 	private boolean checkTerminationConditions() {
-		return (System.currentTimeMillis() - startTime) < config.maxTimeMillis()
-				&& generation < config.maxGenerations()
-				&& population.stream().noneMatch(config.stopCriterion());
+		return generation < config.maxGenerations() && population.stream().noneMatch(config.stopCriterion());
 	}
 
 	public void run() {

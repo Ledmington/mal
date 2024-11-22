@@ -60,7 +60,7 @@ public final class Utils {
 				}
 			}
 
-			return values.get(values.size() - 1);
+			return values.getLast();
 		};
 	}
 }

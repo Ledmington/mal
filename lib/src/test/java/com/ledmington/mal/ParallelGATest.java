@@ -57,6 +57,7 @@ public final class ParallelGATest extends GATest {
 		assertThrows(IllegalArgumentException.class, () -> new ParallelGeneticAlgorithm<String>(nThreads));
 	}
 
+	@Test
 	public void determinism() {
 		// two algorithms with the same config and the same RandomGenerator must return the same result (the best
 		// solution)

@@ -194,30 +194,4 @@ public abstract class GATest {
 				ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit),
 				"There should have been at least one element satisfying the given criterion, but none was found");
 	}
-
-	@ParameterizedTest
-	@ValueSource(ints = {0, 1, 2, 3, 4, 5, 6})
-	public void maxTime(int seconds) {
-		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-		final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
-				.maxSeconds(seconds)
-				.creation(() -> String.valueOf(rng.nextInt()))
-				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-				.maximize(s -> (double) s.length());
-
-		ga.setState(gacb.build());
-
-		final long startActual = System.currentTimeMillis();
-		ga.run();
-		final long end = System.currentTimeMillis();
-		final long elapsedExpected = seconds * 1_000L;
-		final long elapsedActual = end - startActual;
-
-		assertTrue(
-				elapsedActual >= elapsedExpected,
-				String.format(
-						"The algorithm should have executed for at least %,d milliseconds but it ran for %,d milliseconds instead",
-						elapsedExpected, elapsedActual));
-	}
 }

@@ -60,7 +60,7 @@ public final class TestUtils {
 
 		assertTrue(IntStream.range(0, 100)
 				.map(x -> Utils.weightedChoose(values, w, rng).get())
-				.filter(x -> values.get(0).equals(x))
+				.filter(x -> values.getFirst().equals(x))
 				.findAny()
 				.isPresent());
 	}
@@ -72,7 +72,7 @@ public final class TestUtils {
 
 		assertTrue(IntStream.range(0, 100)
 				.map(x -> Utils.weightedChoose(values, w, rng).get())
-				.filter(x -> values.get(values.size() - 1).equals(x))
+				.filter(x -> values.getLast().equals(x))
 				.findAny()
 				.isPresent());
 	}

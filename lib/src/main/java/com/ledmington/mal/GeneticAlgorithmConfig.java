@@ -17,12 +17,10 @@
 */
 package com.ledmington.mal;
 
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -39,7 +37,6 @@ public record GeneticAlgorithmConfig<X>(
 		Function<X, Double> fitnessFunction,
 		Comparator<Double> scoreComparator,
 		Set<X> firstGeneration,
-		long maxTimeMillis,
 		int maxGenerations,
 		Predicate<X> stopCriterion) {
 
@@ -108,8 +105,6 @@ public record GeneticAlgorithmConfig<X>(
 		private Function<X, Double> fitnessFunction = null;
 		private Comparator<Double> scoreComparator = null;
 		private final Set<X> firstGeneration = new HashSet<>();
-		private long maxTime =
-				Instant.now().plus(1, TimeUnit.HOURS.toChronoUnit()).toEpochMilli();
 		private int maxGenerations = Integer.MAX_VALUE;
 		private Predicate<X> stopCriterion = x -> false;
 
@@ -146,12 +141,6 @@ public record GeneticAlgorithmConfig<X>(
 		public GeneticAlgorithmConfigBuilder<X> stopCriterion(final Predicate<X> criterion) {
 			Objects.requireNonNull(criterion, "The stopping criterion cannot be null");
 			stopCriterion = criterion;
-			return this;
-		}
-
-		public GeneticAlgorithmConfigBuilder<X> maxSeconds(int maxSeconds) {
-			assertMaxSecondsIsValid(maxSeconds);
-			maxTime = maxSeconds * 1_000L;
 			return this;
 		}
 
@@ -219,7 +208,6 @@ public record GeneticAlgorithmConfig<X>(
 					fitnessFunction,
 					scoreComparator,
 					firstGeneration,
-					maxTime,
 					maxGenerations,
 					stopCriterion);
 		}
@@ -236,7 +224,6 @@ public record GeneticAlgorithmConfig<X>(
 			Function<X, Double> fitnessFunction,
 			Comparator<Double> scoreComparator,
 			Set<X> firstGeneration,
-			long maxTimeMillis,
 			int maxGenerations,
 			Predicate<X> stopCriterion) {
 		this.populationSize = assertPopulationSizeIsValid(populationSize);
@@ -249,7 +236,6 @@ public record GeneticAlgorithmConfig<X>(
 		this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
 		this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
 		this.firstGeneration = Objects.requireNonNull(firstGeneration, "The first generation cannot be null");
-		this.maxTimeMillis = assertMaxSecondsIsValid(maxTimeMillis);
 		this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
 		this.stopCriterion = Objects.requireNonNull(stopCriterion, "The stop criterion cannot be null");
 

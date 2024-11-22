@@ -78,8 +78,8 @@ public final class RandomStrings {
 								ADD,
 								REMOVE,
 								REPLACE
-							};
-							Choice choice =
+							}
+							final Choice choice =
 									s.isEmpty() ? Choice.ADD : Choice.values()[rng.nextInt(0, Choice.values().length)];
 							return switch (choice) {
 								case ADD -> // we add a new character at the end
@@ -121,9 +121,7 @@ public final class RandomStrings {
 			scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
 					.limit(10)
-					.forEach(e -> {
-						System.out.printf("%s -> %f\n", e.getKey(), e.getValue());
-					});
+					.forEach(e -> System.out.printf("%s -> %f\n", e.getKey(), e.getValue()));
 			g = scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
 					.limit(10)
