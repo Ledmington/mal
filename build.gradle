@@ -55,7 +55,7 @@ allprojects {
 
     javadoc {
         failOnError = true
-        title "emu-v${version}-doc"
+        title "mal-v${version}-doc"
         options.encoding = 'UTF-8'
         options.addBooleanOption('Werror', true)
     }

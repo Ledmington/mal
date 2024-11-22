@@ -234,7 +234,7 @@ public final class Diet {
 		final Set<Solution> allSolutions = new HashSet<>();
 
 		for (int it = 0; it < 10; it++) {
-			System.out.printf("Run n.%,d\n", it);
+			System.out.printf("Run n.%,d%n", it);
 			ga.setState(state.get().firstGeneration(g).build());
 			ga.run();
 
@@ -248,7 +248,7 @@ public final class Diet {
 						for (int i = 0; i < Food.values().length; i++) {
 							p += e.getKey().get(i) * Food.values()[i].avgPricePerKilo;
 						}
-						System.out.printf("%s -> %f (%.2f$)\n", e.getKey(), e.getValue(), p);
+						System.out.printf("%s -> %f (%.2f$)%n", e.getKey(), e.getValue(), p);
 					});
 			g = scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
@@ -260,8 +260,8 @@ public final class Diet {
 
 		final long end = System.nanoTime();
 
-		System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
+		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
 
 		if (!ex.isShutdown()) {
 			ex.shutdown();

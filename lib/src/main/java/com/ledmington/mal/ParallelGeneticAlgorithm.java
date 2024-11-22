@@ -92,7 +92,6 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		cachedScores = new ConcurrentHashMap<>(config.populationSize(), 1.0f);
 		survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
 		bestOfAllTime = new LinkedHashSet<>(survivingPopulation * 2, 1.0f);
-		startTime = System.currentTimeMillis();
 		cachedScoresComparator = (a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b));
 		tasks = new ArrayList<>(config.populationSize());
 

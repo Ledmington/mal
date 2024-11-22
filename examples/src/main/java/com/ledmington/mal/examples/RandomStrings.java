@@ -112,7 +112,7 @@ public final class RandomStrings {
 		final Set<String> allSolutions = new HashSet<>();
 
 		for (int it = 0; it < 100; it++) {
-			System.out.printf("Run n.%,d\n", it);
+			System.out.printf("Run n.%,d%n", it);
 			ga.setState(state.get().firstGeneration(g).build());
 			ga.run();
 
@@ -121,7 +121,7 @@ public final class RandomStrings {
 			scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
 					.limit(10)
-					.forEach(e -> System.out.printf("%s -> %f\n", e.getKey(), e.getValue()));
+					.forEach(e -> System.out.printf("%s -> %f%n", e.getKey(), e.getValue()));
 			g = scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
 					.limit(10)
@@ -132,7 +132,7 @@ public final class RandomStrings {
 
 		final long end = System.nanoTime();
 
-		System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
+		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
 	}
 }

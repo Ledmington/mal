@@ -34,7 +34,6 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
 	protected final RandomGenerator rng;
 	protected GeneticAlgorithmConfig<X> config = null;
-	protected long startTime;
 	private int generation = 0;
 	protected List<X> population;
 	protected List<X> nextGeneration;
@@ -75,7 +74,6 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 		cachedScores = new HashMap<>(config.populationSize(), 1.0f);
 		survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
 		bestOfAllTime = new LinkedHashSet<>(survivingPopulation * 2, 1.0f);
-		startTime = System.currentTimeMillis();
 		cachedScoresComparator = (a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b));
 	}
 

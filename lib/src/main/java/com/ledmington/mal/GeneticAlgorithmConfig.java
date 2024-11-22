@@ -165,7 +165,7 @@ public record GeneticAlgorithmConfig<X>(
 		public GeneticAlgorithmConfigBuilder<X> maximize(final Function<X, Double> fitness) {
 			Objects.requireNonNull(fitness, "The fitness function cannot be null");
 			fitnessFunction = fitness;
-			scoreComparator = (a, b) -> -Double.compare(a, b);
+			scoreComparator = (a, b) -> Double.compare(b, a);
 			return this;
 		}
 

@@ -85,7 +85,7 @@ public final class Knapsack {
 
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
-			sb.append("[");
+			sb.append('[');
 			boolean firstElement = true;
 			for (int i = 0; i < array.length; i++) {
 				if (array[i]) {
@@ -97,7 +97,7 @@ public final class Knapsack {
 					sb.append(String.format("%2d", i));
 				}
 			}
-			sb.append("]");
+			sb.append(']');
 			return sb.toString();
 		}
 	}
@@ -111,16 +111,16 @@ public final class Knapsack {
 		final double capacity = 20.0;
 
 		System.out.println("Knapsack data:");
-		System.out.printf("Knapsack's capacity : %.3f\n", capacity);
-		System.out.printf("Number of items : %,d\n", nItems);
-		System.out.printf("Total possible solutions : %.3e\n", new BigDecimal(BigInteger.ONE.shiftLeft(nItems)));
+		System.out.printf("Knapsack's capacity : %.3f%n", capacity);
+		System.out.printf("Number of items : %,d%n", nItems);
+		System.out.printf("Total possible solutions : %.3e%n", new BigDecimal(BigInteger.ONE.shiftLeft(nItems)));
 		System.out.println();
 
 		System.out.println("Items data:");
 		for (int i = 0; i < nItems; i++) {
 			weights[i] = rng.nextDouble(0.1, 6.0);
 			values[i] = rng.nextDouble(0.1, 6.0);
-			System.out.printf("%3d: (w: %.3f; v: %.3f)\n", i, weights[i], values[i]);
+			System.out.printf("%3d: (w: %.3f; v: %.3f)%n", i, weights[i], values[i]);
 		}
 		System.out.println();
 
@@ -182,7 +182,7 @@ public final class Knapsack {
 		final Set<Solution> allSolutions = new HashSet<>();
 
 		for (int it = 0; it < 10; it++) {
-			System.out.printf("Run n.%,d\n", it);
+			System.out.printf("Run n.%,d%n", it);
 			ga.setState(state.get().firstGeneration(g).build());
 			ga.run();
 
@@ -199,7 +199,7 @@ public final class Knapsack {
 							}
 						}
 						System.out.printf(
-								"%s -> (total-weight: %.3f; total-value: %.3f)\n",
+								"%s -> (total-weight: %.3f; total-value: %.3f)%n",
 								e.getKey(), totalWeight, e.getValue());
 					});
 			g = scores.entrySet().stream()
@@ -212,8 +212,8 @@ public final class Knapsack {
 
 		final long end = System.nanoTime();
 
-		System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
+		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
 
 		if (!ex.isShutdown()) {
 			ex.shutdown();

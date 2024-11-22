@@ -236,8 +236,12 @@ public final class NeuralNetwork {
 				.minimize(x -> {
 					// minimize RMSE
 					double score = 0.0;
+					final float[] inputs = new float[2];
+					float[] outputs;
 					for (int i = 0; i < nPoints; i++) {
-						final float[] outputs = x.predict(new float[] {dataset[i].x, dataset[i].y});
+						inputs[0] = dataset[i].x;
+						inputs[1] = dataset[i].y;
+						outputs = x.predict(inputs);
 						for (int j = 0; j < outputVariables; j++) {
 							score += (outputs[j] - solutions[i][j]) * (outputs[j] - solutions[i][j]);
 						}

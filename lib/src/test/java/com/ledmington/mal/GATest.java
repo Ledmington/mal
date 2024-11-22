@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -51,7 +52,7 @@ public abstract class GATest {
 		@Override
 		public synchronized String get() {
 			count++;
-			return "" + count;
+			return String.valueOf(count);
 		}
 
 		public int getCount() {
@@ -137,13 +138,16 @@ public abstract class GATest {
 	@Test
 	public void ifQuietShouldPrintNothing() {
 		final PrintStream oldStdout = System.out;
-		System.setOut(new PrintStream(new OutputStream() {
-			public void write(int b) {
-				// reset the old stdout object to avoid bad stuff
-				System.setOut(oldStdout);
-				fail("This test was not supposed to print anything");
-			}
-		}));
+		System.setOut(new PrintStream(
+				new OutputStream() {
+					public void write(int b) {
+						// reset the old stdout object to avoid bad stuff
+						System.setOut(oldStdout);
+						fail("This test was not supposed to print anything");
+					}
+				},
+				true,
+				StandardCharsets.UTF_8));
 
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 

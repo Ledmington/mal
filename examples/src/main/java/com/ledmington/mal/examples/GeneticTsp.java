@@ -103,7 +103,7 @@ public final class GeneticTsp {
 
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
-			sb.append("[");
+			sb.append('[');
 			boolean firstElement = true;
 			for (final int j : array) {
 				if (firstElement) {
@@ -113,7 +113,7 @@ public final class GeneticTsp {
 				}
 				sb.append(String.format("%2d", j));
 			}
-			sb.append("]");
+			sb.append(']');
 			return sb.toString();
 		}
 	}
@@ -136,9 +136,9 @@ public final class GeneticTsp {
 		final double[][] coordinates = new double[2][nCities];
 
 		System.out.println("Traveling Salesman Problem's data:");
-		System.out.printf("Number of cities : %,d\n", nCities);
+		System.out.printf("Number of cities : %,d%n", nCities);
 		System.out.printf(
-				"Number of unique paths : %.3e\n",
+				"Number of unique paths : %.3e%n",
 				new BigDecimal(factorial(BigInteger.valueOf(nCities - 1)).divide(BigInteger.TWO)));
 
 		System.out.println();
@@ -146,7 +146,7 @@ public final class GeneticTsp {
 		for (int i = 0; i < nCities; i++) {
 			coordinates[0][i] = rng.nextDouble(-10.0, 10.0);
 			coordinates[1][i] = rng.nextDouble(-10.0, 10.0);
-			System.out.printf("%2d: (%+.3f; %+.3f)\n", i, coordinates[0][i], coordinates[1][i]);
+			System.out.printf("%2d: (%+.3f; %+.3f)%n", i, coordinates[0][i], coordinates[1][i]);
 		}
 		System.out.println();
 
@@ -220,7 +220,7 @@ public final class GeneticTsp {
 		final Set<Solution> allSolutions = new HashSet<>();
 
 		for (int it = 0; it < 10; it++) {
-			System.out.printf("Run n.%,d\n", it);
+			System.out.printf("Run n.%,d%n", it);
 			ga.setState(state.get().firstGeneration(g).build());
 			ga.run();
 
@@ -229,7 +229,7 @@ public final class GeneticTsp {
 			scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
 					.limit(10)
-					.forEach(e -> System.out.printf("%s -> %f\n", e.getKey(), e.getValue()));
+					.forEach(e -> System.out.printf("%s -> %f%n", e.getKey(), e.getValue()));
 			g = scores.entrySet().stream()
 					.sorted(Map.Entry.comparingByValue())
 					.limit(10)
@@ -240,8 +240,8 @@ public final class GeneticTsp {
 
 		final long end = System.nanoTime();
 
-		System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
+		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
 
 		if (!ex.isShutdown()) {
 			ex.shutdown();
