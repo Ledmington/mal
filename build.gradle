@@ -1,6 +1,8 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id 'pmd'
+    id 'com.github.spotbugs' version '6.0.26'
     id 'com.adarshr.test-logger' version '4.0.0'
     id 'com.diffplug.spotless' version '6.25.0'
     id 'com.github.ben-manes.versions' version '0.51.0'
@@ -17,17 +19,19 @@ String appDescription = 'A collection of minimization algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
 
-ext.junitVersion = "5.10.2"
+ext.junitVersion = '5.11.3'
 
 allprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
+    apply plugin: 'pmd'
+    apply plugin: 'com.github.spotbugs'
     apply plugin: 'com.adarshr.test-logger'
     apply plugin: 'com.github.ben-manes.versions'
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
@@ -49,11 +53,19 @@ allprojects {
         options.encoding = 'UTF-8'
     }
 
+    javadoc {
+        failOnError = true
+        title "emu-v${version}-doc"
+        options.encoding = 'UTF-8'
+        options.addBooleanOption('Werror', true)
+    }
+
     test {
         useJUnitPlatform()
         // failFast true
         finalizedBy jacocoTestReport
     }
+
     jacocoTestReport {
         dependsOn test // tests are required to run before generating the report
         reports {
@@ -63,8 +75,9 @@ allprojects {
             html.outputLocation = layout.buildDirectory.dir('jacoco')
         }
     }
+
     jacoco {
-        toolVersion = "0.8.9"
+        toolVersion = "0.8.12"
         reportsDirectory = layout.buildDirectory.dir('jacoco')
     }
 
@@ -92,6 +105,31 @@ allprojects {
 
         logLevel 'lifecycle'
     }
+
+    pmd {
+        consoleOutput = true
+        toolVersion = "7.2.0"
+        rulesMinimumPriority = 5
+        threads = 1
+        incrementalAnalysis = true
+        ruleSetConfig = resources.text.fromFile(path("${project.rootDir}", "ruleset.xml"))
+    }
+
+    spotbugs {
+        toolVersion = '4.8.6'
+
+        ignoreFailures = false
+        showStackTraces = true
+        showProgress = false // too verbose for parallel output
+    }
+
+    // cleanup tasks
+    clean.dependsOn('cleanBin')
+
+    // remove default VSCode build directory
+    tasks.register('cleanBin', Delete) {
+        delete "${project.projectDir}/bin"
+    }
 }
 
 spotless {
@@ -108,15 +146,16 @@ spotless {
             include path('**', '*.java')
             exclude path('**', 'build', '**'), path('**', 'build-*', '**'), path('**', 'bin', '**')
         }
+        setEncoding('utf-8')
         removeUnusedImports()
+        palantirJavaFormat('2.50.0').formatJavadoc(true)
+        indentWithTabs()
         formatAnnotations()
         trimTrailingWhitespace()
         endWithNewline()
-        setEncoding('utf-8')
-        palantirJavaFormat('2.41.0')
 
         // check https://javadoc.io/doc/com.diffplug.spotless/spotless-plugin-gradle/latest/com/diffplug/gradle/spotless/JavaExtension.html
-        importOrder('java', 'javax', 'javafx', 'com', 'com.ledmington', 'org', group as String)
+        importOrder('java', 'javax', 'javafx', 'org.junit', 'com', 'com.ledmington', 'org', group as String)
 
         licenseHeader String.join("\n",
                 "/*",
@@ -140,4 +179,7 @@ spotless {
     }
 }
 
-allprojects.each { it.tasks.compileJava.dependsOn(spotlessApply) }
+allprojects.each {
+    it.tasks.compileJava.dependsOn(spotlessApply)
+    it.tasks.build.dependsOn(it.tasks.javadoc)
+}

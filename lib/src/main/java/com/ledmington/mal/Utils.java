@@ -24,43 +24,43 @@ import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 public final class Utils {
-    private Utils() {}
+	private Utils() {}
 
-    public static <X> Supplier<X> weightedChoose(
-            final List<X> values, final Function<X, Double> weight, final RandomGenerator rng) {
-        Objects.requireNonNull(values, "The list of values cannot be null");
-        Objects.requireNonNull(weight, "The weight function cannot be null");
-        Objects.requireNonNull(rng, "The RandomGenerator cannot be null");
+	public static <X> Supplier<X> weightedChoose(
+			final List<X> values, final Function<X, Double> weight, final RandomGenerator rng) {
+		Objects.requireNonNull(values, "The list of values cannot be null");
+		Objects.requireNonNull(weight, "The weight function cannot be null");
+		Objects.requireNonNull(rng, "The RandomGenerator cannot be null");
 
-        if (values.isEmpty()) {
-            throw new IllegalArgumentException("The list of values cannot be empty");
-        }
+		if (values.isEmpty()) {
+			throw new IllegalArgumentException("The list of values cannot be empty");
+		}
 
-        final Function<X, Double> safeWeight = x -> {
-            final double result = weight.apply(x);
-            if (result < 0.0) {
-                throw new IllegalArgumentException(String.format(
-                        "Negative weights are not allowed: the object '%s' produced the weight %f",
-                        x.toString(), result));
-            }
-            return result;
-        };
-        final double totalWeight =
-                values.stream().mapToDouble(safeWeight::apply).sum();
+		final Function<X, Double> safeWeight = x -> {
+			final double result = weight.apply(x);
+			if (result < 0.0) {
+				throw new IllegalArgumentException(String.format(
+						"Negative weights are not allowed: the object '%s' produced the weight %f",
+						x.toString(), result));
+			}
+			return result;
+		};
+		final double totalWeight =
+				values.stream().mapToDouble(safeWeight::apply).sum();
 
-        return () -> {
-            final double chosenWeight = rng.nextDouble(0.0, totalWeight);
+		return () -> {
+			final double chosenWeight = rng.nextDouble(0.0, totalWeight);
 
-            double sum = 0.0;
-            for (int i = 0; i < values.size() - 1; i++) {
-                final X ith_element = values.get(i);
-                sum += safeWeight.apply(ith_element);
-                if (sum >= chosenWeight) {
-                    return ith_element;
-                }
-            }
+			double sum = 0.0;
+			for (int i = 0; i < values.size() - 1; i++) {
+				final X ith_element = values.get(i);
+				sum += safeWeight.apply(ith_element);
+				if (sum >= chosenWeight) {
+					return ith_element;
+				}
+			}
 
-            return values.get(values.size() - 1);
-        };
-    }
+			return values.get(values.size() - 1);
+		};
+	}
 }

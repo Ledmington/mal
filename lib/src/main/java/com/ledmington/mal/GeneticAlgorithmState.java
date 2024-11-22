@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 
 public record GeneticAlgorithmState<X>(
-        int generation,
-        List<X> population,
-        Map<X, Double> scores,
-        int mutations,
-        int crossovers,
-        int randomCreations) {}
+		int generation,
+		List<X> population,
+		Map<X, Double> scores,
+		int mutations,
+		int crossovers,
+		int randomCreations) {}

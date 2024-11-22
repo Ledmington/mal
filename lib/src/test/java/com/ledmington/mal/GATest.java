@@ -29,195 +29,195 @@ import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-import com.ledmington.mal.GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.ledmington.mal.GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder;
+
 public abstract class GATest {
 
-    protected GeneticAlgorithm<String> ga;
+	protected GeneticAlgorithm<String> ga;
 
-    @BeforeEach
-    public abstract void setup();
+	@BeforeEach
+	public abstract void setup();
 
-    // A Supplier that counts the number of times it has been invoked
-    static class CountingSupplier implements Supplier<String> {
+	// A Supplier that counts the number of times it has been invoked
+	static class CountingSupplier implements Supplier<String> {
 
-        private int count = 0;
+		private int count = 0;
 
-        @Override
-        public synchronized String get() {
-            count++;
-            return "" + count;
-        }
+		@Override
+		public synchronized String get() {
+			count++;
+			return "" + count;
+		}
 
-        public int getCount() {
-            return count;
-        }
-    }
+		public int getCount() {
+			return count;
+		}
+	}
 
-    // A Mutator that counts the number of times it has been invoked
-    static class CountingMutator implements Function<String, String> {
-        private int count = 0;
+	// A Mutator that counts the number of times it has been invoked
+	static class CountingMutator implements Function<String, String> {
+		private int count = 0;
 
-        public synchronized String apply(final String in) {
-            count++;
-            return in;
-        }
+		public synchronized String apply(final String in) {
+			count++;
+			return in;
+		}
 
-        public int getCount() {
-            return count;
-        }
-    }
+		public int getCount() {
+			return count;
+		}
+	}
 
-    // A Crossover operator that counts the number of times it has been invoked
-    static class CountingCrossoverOperator implements BiFunction<String, String, String> {
-        private int count = 0;
+	// A Crossover operator that counts the number of times it has been invoked
+	static class CountingCrossoverOperator implements BiFunction<String, String, String> {
+		private int count = 0;
 
-        public synchronized String apply(final String first, final String second) {
-            count++;
-            return first;
-        }
+		public synchronized String apply(final String first, final String second) {
+			count++;
+			return first;
+		}
 
-        public int getCount() {
-            return count;
-        }
-    }
+		public int getCount() {
+			return count;
+		}
+	}
 
-    @ParameterizedTest
-    @ValueSource(ints = {10, 20, 30, 40, 50, 60, 70, 80, 90})
-    public void zeroGenerationsMeansOnlyCreation(final int populationSize) {
-        final CountingSupplier cs = new CountingSupplier();
-        ga.setState(GeneticAlgorithmConfig.<String>builder()
-                .populationSize(populationSize)
-                .maxGenerations(0)
-                .crossover((a, b) -> b)
-                .mutation(Function.identity())
-                .maximize(s -> 0.0)
-                .creation(cs)
-                .build());
-        ga.run();
-        assertEquals(populationSize, cs.getCount());
-    }
+	@ParameterizedTest
+	@ValueSource(ints = {10, 20, 30, 40, 50, 60, 70, 80, 90})
+	public void zeroGenerationsMeansOnlyCreation(final int populationSize) {
+		final CountingSupplier cs = new CountingSupplier();
+		ga.setState(GeneticAlgorithmConfig.<String>builder()
+				.populationSize(populationSize)
+				.maxGenerations(0)
+				.crossover((a, b) -> b)
+				.mutation(Function.identity())
+				.maximize(s -> 0.0)
+				.creation(cs)
+				.build());
+		ga.run();
+		assertEquals(populationSize, cs.getCount());
+	}
 
-    @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
-    public void zeroRatesMeansAlwaysRandomCreations(final int generations) {
-        /*
-           The survival rate, the mutation rate and the crossover rate cannot be technically zero,
-           but we can give 1e-6 so that less than one individual will survive,
-           less than one individual will be mutated and less than one crossover will be performed.
-        */
-        final int maxPopulation = 100;
-        final CountingSupplier cs = new CountingSupplier();
-        final CountingMutator cm = new CountingMutator();
-        final CountingCrossoverOperator cco = new CountingCrossoverOperator();
+	@ParameterizedTest
+	@ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+	public void zeroRatesMeansAlwaysRandomCreations(final int generations) {
+		/*
+		The survival rate, the mutation rate and the crossover rate cannot be technically zero,
+		but we can give 1e-6 so that less than one individual will survive,
+		less than one individual will be mutated and less than one crossover will be performed.
+		*/
+		final int maxPopulation = 100;
+		final CountingSupplier cs = new CountingSupplier();
+		final CountingMutator cm = new CountingMutator();
+		final CountingCrossoverOperator cco = new CountingCrossoverOperator();
 
-        ga.setState(GeneticAlgorithmConfig.<String>builder()
-                .populationSize(maxPopulation)
-                .maxGenerations(generations)
-                .survivalRate(1e-6)
-                .crossoverRate(1e-6)
-                .mutationRate(1e-6)
-                .crossover(cco)
-                .mutation(cm)
-                .creation(cs)
-                .maximize(s -> (double) s.length())
-                .build());
-        ga.run();
+		ga.setState(GeneticAlgorithmConfig.<String>builder()
+				.populationSize(maxPopulation)
+				.maxGenerations(generations)
+				.survivalRate(1e-6)
+				.crossoverRate(1e-6)
+				.mutationRate(1e-6)
+				.crossover(cco)
+				.mutation(cm)
+				.creation(cs)
+				.maximize(s -> (double) s.length())
+				.build());
+		ga.run();
 
-        assertEquals(0, cco.getCount()); // zero crossovers
-        assertEquals(0, cm.getCount()); // zero mutations
-        assertEquals(maxPopulation * (generations + 1), cs.getCount()); // only random creations
-    }
+		assertEquals(0, cco.getCount()); // zero crossovers
+		assertEquals(0, cm.getCount()); // zero mutations
+		assertEquals(maxPopulation * (generations + 1), cs.getCount()); // only random creations
+	}
 
-    @Test
-    public void ifQuietShouldPrintNothing() {
-        final PrintStream oldStdout = System.out;
-        System.setOut(new PrintStream(new OutputStream() {
-            public void write(int b) {
-                // reset the old stdout object to avoid bad stuff
-                System.setOut(oldStdout);
-                fail("This test was not supposed to print anything");
-            }
-        }));
+	@Test
+	public void ifQuietShouldPrintNothing() {
+		final PrintStream oldStdout = System.out;
+		System.setOut(new PrintStream(new OutputStream() {
+			public void write(int b) {
+				// reset the old stdout object to avoid bad stuff
+				System.setOut(oldStdout);
+				fail("This test was not supposed to print anything");
+			}
+		}));
 
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-        ga.setState(GeneticAlgorithmConfig.<String>builder()
-                .maxGenerations(100)
-                .creation(() -> String.valueOf(rng.nextInt()))
-                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length())
-                .build());
-        ga.run();
-    }
+		ga.setState(GeneticAlgorithmConfig.<String>builder()
+				.maxGenerations(100)
+				.creation(() -> String.valueOf(rng.nextInt()))
+				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+				.maximize(s -> (double) s.length())
+				.build());
+		ga.run();
+	}
 
-    @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 5, 10, 20, 30, 40, 50})
-    public void maxGenerations(int generations) {
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
-                .maxGenerations(generations)
-                .creation(() -> String.valueOf(rng.nextInt()))
-                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length());
+	@ParameterizedTest
+	@ValueSource(ints = {0, 1, 2, 5, 10, 20, 30, 40, 50})
+	public void maxGenerations(int generations) {
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
+				.maxGenerations(generations)
+				.creation(() -> String.valueOf(rng.nextInt()))
+				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+				.maximize(s -> (double) s.length());
 
-        ga.setState(gacb.build());
-        ga.run();
+		ga.setState(gacb.build());
+		ga.run();
 
-        assertEquals(generations, ga.getState().generation());
-    }
+		assertEquals(generations, ga.getState().generation());
+	}
 
-    @ParameterizedTest
-    @ValueSource(ints = {0, 9, 99, 999, 9_999, 99_999, 999_999})
-    public void stopCriterion(int limit) {
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
-                .stopCriterion(s -> Integer.parseInt(s) >= limit)
-                .creation(() -> String.valueOf(rng.nextInt()))
-                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length());
+	@ParameterizedTest
+	@ValueSource(ints = {0, 9, 99, 999, 9_999, 99_999, 999_999})
+	public void stopCriterion(int limit) {
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
+				.stopCriterion(s -> Integer.parseInt(s) >= limit)
+				.creation(() -> String.valueOf(rng.nextInt()))
+				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+				.maximize(s -> (double) s.length());
 
-        ga.setState(gacb.build());
-        ga.run();
+		ga.setState(gacb.build());
+		ga.run();
 
-        assertTrue(
-                // we check just the population of the latest generation because the check is performed before the
-                // "computeScores" phase
-                ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit),
-                "There should have been at least one element satisfying the given criterion, but none was found");
-    }
+		assertTrue(
+				// we check just the population of the latest generation because the check is performed before the
+				// "computeScores" phase
+				ga.getState().population().stream().anyMatch(s -> Integer.parseInt(s) >= limit),
+				"There should have been at least one element satisfying the given criterion, but none was found");
+	}
 
-    @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6})
-    public void maxTime(int seconds) {
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-        final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
-                .maxSeconds(seconds)
-                .creation(() -> String.valueOf(rng.nextInt()))
-                .crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-                .mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-                .maximize(s -> (double) s.length());
+	@ParameterizedTest
+	@ValueSource(ints = {0, 1, 2, 3, 4, 5, 6})
+	public void maxTime(int seconds) {
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
+				.maxSeconds(seconds)
+				.creation(() -> String.valueOf(rng.nextInt()))
+				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+				.maximize(s -> (double) s.length());
 
-        ga.setState(gacb.build());
+		ga.setState(gacb.build());
 
-        final long startActual = System.currentTimeMillis();
-        ga.run();
-        final long end = System.currentTimeMillis();
-        final long elapsedExpected = seconds * 1_000L;
-        final long elapsedActual = end - startActual;
+		final long startActual = System.currentTimeMillis();
+		ga.run();
+		final long end = System.currentTimeMillis();
+		final long elapsedExpected = seconds * 1_000L;
+		final long elapsedActual = end - startActual;
 
-        assertTrue(
-                elapsedActual >= elapsedExpected,
-                String.format(
-                        "The algorithm should have executed for at least %,d milliseconds but it ran for %,d milliseconds instead",
-                        elapsedExpected, elapsedActual));
-    }
+		assertTrue(
+				elapsedActual >= elapsedExpected,
+				String.format(
+						"The algorithm should have executed for at least %,d milliseconds but it ran for %,d milliseconds instead",
+						elapsedExpected, elapsedActual));
+	}
 }

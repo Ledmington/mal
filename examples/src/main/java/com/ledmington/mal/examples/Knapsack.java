@@ -36,195 +36,195 @@ import com.ledmington.mal.ParallelGeneticAlgorithm;
 
 public final class Knapsack {
 
-    private static final class Solution {
-        private final boolean[] array;
-        private final int cachedHashCode;
+	private static final class Solution {
+		private final boolean[] array;
+		private final int cachedHashCode;
 
-        public Solution(final boolean[] array) {
-            this.array = array;
-            int h = 17;
-            for (final boolean b : array) {
-                h = 31 * h + (b ? 1 : 0);
-            }
-            cachedHashCode = h;
-        }
+		public Solution(final boolean[] array) {
+			this.array = array;
+			int h = 17;
+			for (final boolean b : array) {
+				h = 31 * h + (b ? 1 : 0);
+			}
+			cachedHashCode = h;
+		}
 
-        public boolean get(final int i) {
-            return array[i];
-        }
+		public boolean get(final int i) {
+			return array[i];
+		}
 
-        public boolean[] array() {
-            return array;
-        }
+		public boolean[] array() {
+			return array;
+		}
 
-        public int hashCode() {
-            return cachedHashCode;
-        }
+		public int hashCode() {
+			return cachedHashCode;
+		}
 
-        public boolean equals(final Object other) {
-            if (other == null) {
-                return false;
-            }
-            if (this == other) {
-                return true;
-            }
-            if (!this.getClass().equals(other.getClass())) {
-                return false;
-            }
-            final Solution s = (Solution) other;
-            if (this.array.length != s.array.length) {
-                return false;
-            }
-            for (int i = 0; i < array.length; i++) {
-                if (this.array[i] != s.array[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
+		public boolean equals(final Object other) {
+			if (other == null) {
+				return false;
+			}
+			if (this == other) {
+				return true;
+			}
+			if (!this.getClass().equals(other.getClass())) {
+				return false;
+			}
+			final Solution s = (Solution) other;
+			if (this.array.length != s.array.length) {
+				return false;
+			}
+			for (int i = 0; i < array.length; i++) {
+				if (this.array[i] != s.array[i]) {
+					return false;
+				}
+			}
+			return true;
+		}
 
-        public String toString() {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            boolean firstElement = true;
-            for (int i = 0; i < array.length; i++) {
-                if (array[i]) {
-                    if (firstElement) {
-                        firstElement = false;
-                    } else {
-                        sb.append(", ");
-                    }
-                    sb.append(String.format("%2d", i));
-                }
-            }
-            sb.append("]");
-            return sb.toString();
-        }
-    }
+		public String toString() {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("[");
+			boolean firstElement = true;
+			for (int i = 0; i < array.length; i++) {
+				if (array[i]) {
+					if (firstElement) {
+						firstElement = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(String.format("%2d", i));
+				}
+			}
+			sb.append("]");
+			return sb.toString();
+		}
+	}
 
-    public Knapsack() {
-        final long beginning = System.nanoTime();
-        final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-        final int nItems = 100;
-        final double[] weights = new double[nItems];
-        final double[] values = new double[nItems];
-        final double capacity = 20.0;
+	public Knapsack() {
+		final long beginning = System.nanoTime();
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final int nItems = 100;
+		final double[] weights = new double[nItems];
+		final double[] values = new double[nItems];
+		final double capacity = 20.0;
 
-        System.out.println("Knapsack data:");
-        System.out.printf("Knapsack's capacity : %.3f\n", capacity);
-        System.out.printf("Number of items : %,d\n", nItems);
-        System.out.printf("Total possible solutions : %.3e\n", new BigDecimal(BigInteger.ONE.shiftLeft(nItems)));
-        System.out.println();
+		System.out.println("Knapsack data:");
+		System.out.printf("Knapsack's capacity : %.3f\n", capacity);
+		System.out.printf("Number of items : %,d\n", nItems);
+		System.out.printf("Total possible solutions : %.3e\n", new BigDecimal(BigInteger.ONE.shiftLeft(nItems)));
+		System.out.println();
 
-        System.out.println("Items data:");
-        for (int i = 0; i < nItems; i++) {
-            weights[i] = rng.nextDouble(0.1, 6.0);
-            values[i] = rng.nextDouble(0.1, 6.0);
-            System.out.printf("%3d: (w: %.3f; v: %.3f)\n", i, weights[i], values[i]);
-        }
-        System.out.println();
+		System.out.println("Items data:");
+		for (int i = 0; i < nItems; i++) {
+			weights[i] = rng.nextDouble(0.1, 6.0);
+			values[i] = rng.nextDouble(0.1, 6.0);
+			System.out.printf("%3d: (w: %.3f; v: %.3f)\n", i, weights[i], values[i]);
+		}
+		System.out.println();
 
-        final Supplier<GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<Solution>> state =
-                () -> GeneticAlgorithmConfig.<Solution>builder()
-                        .populationSize(1_000)
-                        .maxGenerations(100)
-                        .survivalRate(0.1)
-                        .crossoverRate(0.7)
-                        .mutationRate(0.2)
-                        .creation(() -> {
-                            final boolean[] v = new boolean[nItems];
+		final Supplier<GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<Solution>> state =
+				() -> GeneticAlgorithmConfig.<Solution>builder()
+						.populationSize(1_000)
+						.maxGenerations(100)
+						.survivalRate(0.1)
+						.crossoverRate(0.7)
+						.mutationRate(0.2)
+						.creation(() -> {
+							final boolean[] v = new boolean[nItems];
 
-                            for (int i = 0; i < nItems; i++) {
-                                v[i] = rng.nextBoolean();
-                            }
+							for (int i = 0; i < nItems; i++) {
+								v[i] = rng.nextBoolean();
+							}
 
-                            return new Solution(v);
-                        })
-                        .crossover((a, b) -> {
-                            final boolean[] v = new boolean[nItems];
+							return new Solution(v);
+						})
+						.crossover((a, b) -> {
+							final boolean[] v = new boolean[nItems];
 
-                            for (int i = 0; i < nItems; i++) {
-                                v[i] = rng.nextBoolean() ? a.get(i) : b.get(i);
-                            }
+							for (int i = 0; i < nItems; i++) {
+								v[i] = rng.nextBoolean() ? a.get(i) : b.get(i);
+							}
 
-                            return new Solution(v);
-                        })
-                        .mutation(x -> {
-                            final boolean[] v = new boolean[nItems];
-                            System.arraycopy(x.array(), 0, v, 0, nItems);
-                            final int idx = rng.nextInt(0, nItems);
-                            v[idx] = !v[idx];
-                            return new Solution(v);
-                        })
-                        .maximize(x -> {
-                            double totalWeight = 0.0;
-                            double s = 0.0;
-                            int n = 0;
-                            for (int i = 0; i < nItems; i++) {
-                                if (x.get(i)) {
-                                    s += values[i];
-                                    totalWeight += weights[i];
-                                    n++;
-                                }
-                            }
+							return new Solution(v);
+						})
+						.mutation(x -> {
+							final boolean[] v = new boolean[nItems];
+							System.arraycopy(x.array(), 0, v, 0, nItems);
+							final int idx = rng.nextInt(0, nItems);
+							v[idx] = !v[idx];
+							return new Solution(v);
+						})
+						.maximize(x -> {
+							double totalWeight = 0.0;
+							double s = 0.0;
+							int n = 0;
+							for (int i = 0; i < nItems; i++) {
+								if (x.get(i)) {
+									s += values[i];
+									totalWeight += weights[i];
+									n++;
+								}
+							}
 
-                            final double validSolutionPrize = 1_000.0;
-                            if (totalWeight > capacity) {
-                                return (double) (nItems - n);
-                            }
-                            return s + validSolutionPrize;
-                        });
+							final double validSolutionPrize = 1_000.0;
+							if (totalWeight > capacity) {
+								return (double) (nItems - n);
+							}
+							return s + validSolutionPrize;
+						});
 
-        final ExecutorService ex =
-                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(ex, rng);
-        Set<Solution> g = new HashSet<>();
-        final Set<Solution> allSolutions = new HashSet<>();
+		final ExecutorService ex =
+				Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(ex, rng);
+		Set<Solution> g = new HashSet<>();
+		final Set<Solution> allSolutions = new HashSet<>();
 
-        for (int it = 0; it < 10; it++) {
-            System.out.printf("Run n.%,d\n", it);
-            ga.setState(state.get().firstGeneration(g).build());
-            ga.run();
+		for (int it = 0; it < 10; it++) {
+			System.out.printf("Run n.%,d\n", it);
+			ga.setState(state.get().firstGeneration(g).build());
+			ga.run();
 
-            final Map<Solution, Double> scores = ga.getState().scores();
-            allSolutions.addAll(scores.keySet());
-            scores.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                    .limit(10)
-                    .forEach(e -> {
-                        double totalWeight = 0;
-                        for (int i = 0; i < nItems; i++) {
-                            if (e.getKey().get(i)) {
-                                totalWeight += weights[i];
-                            }
-                        }
-                        System.out.printf(
-                                "%s -> (total-weight: %.3f; total-value: %.3f)\n",
-                                e.getKey(), totalWeight, e.getValue());
-                    });
-            g = scores.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                    .limit(10)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toSet());
-            System.out.println();
-        }
+			final Map<Solution, Double> scores = ga.getState().scores();
+			allSolutions.addAll(scores.keySet());
+			scores.entrySet().stream()
+					.sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+					.limit(10)
+					.forEach(e -> {
+						double totalWeight = 0;
+						for (int i = 0; i < nItems; i++) {
+							if (e.getKey().get(i)) {
+								totalWeight += weights[i];
+							}
+						}
+						System.out.printf(
+								"%s -> (total-weight: %.3f; total-value: %.3f)\n",
+								e.getKey(), totalWeight, e.getValue());
+					});
+			g = scores.entrySet().stream()
+					.sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+					.limit(10)
+					.map(Map.Entry::getKey)
+					.collect(Collectors.toSet());
+			System.out.println();
+		}
 
-        final long end = System.nanoTime();
+		final long end = System.nanoTime();
 
-        System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
-        System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("\n%,d solutions evaluated\n", allSolutions.size());
+		System.out.printf("Total search time: %.3f seconds\n", (double) (end - beginning) / 1_000_000_000.0);
 
-        if (!ex.isShutdown()) {
-            ex.shutdown();
-        }
-        while (!ex.isTerminated()) {
-            try {
-                if (ex.awaitTermination(1, TimeUnit.SECONDS)) {
-                    break;
-                }
-            } catch (final InterruptedException ignored) {
-            }
-        }
-    }
+		if (!ex.isShutdown()) {
+			ex.shutdown();
+		}
+		while (!ex.isTerminated()) {
+			try {
+				if (ex.awaitTermination(1, TimeUnit.SECONDS)) {
+					break;
+				}
+			} catch (final InterruptedException ignored) {
+			}
+		}
+	}
 }

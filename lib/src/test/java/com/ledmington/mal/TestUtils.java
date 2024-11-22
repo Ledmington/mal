@@ -37,90 +37,90 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public final class TestUtils {
 
-    private static final RandomGenerator rng =
-            RandomGeneratorFactory.getDefault().create(System.nanoTime());
+	private static final RandomGenerator rng =
+			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-    public static Stream<Arguments> inputs() {
-        return Stream.of(
-                Arguments.of(List.of(1, 2, 3), Function.identity(), null),
-                Arguments.of(List.of(1, 2, 3), null, rng),
-                Arguments.of(null, Function.identity(), rng));
-    }
+	public static Stream<Arguments> inputs() {
+		return Stream.of(
+				Arguments.of(List.of(1, 2, 3), Function.identity(), null),
+				Arguments.of(List.of(1, 2, 3), null, rng),
+				Arguments.of(null, Function.identity(), rng));
+	}
 
-    @ParameterizedTest
-    @MethodSource("inputs")
-    public void nullChecks(final List<Integer> v, final Function<Integer, Double> w, final RandomGenerator r) {
-        assertThrows(NullPointerException.class, () -> Utils.weightedChoose(v, w, r));
-    }
+	@ParameterizedTest
+	@MethodSource("inputs")
+	public void nullChecks(final List<Integer> v, final Function<Integer, Double> w, final RandomGenerator r) {
+		assertThrows(NullPointerException.class, () -> Utils.weightedChoose(v, w, r));
+	}
 
-    @Test
-    public void weightedChooseCanChooseFirst() {
-        final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        final Function<Integer, Double> w = x -> 9.1 - x;
+	@Test
+	public void weightedChooseCanChooseFirst() {
+		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
+		final Function<Integer, Double> w = x -> 9.1 - x;
 
-        assertTrue(IntStream.range(0, 100)
-                .map(x -> Utils.weightedChoose(values, w, rng).get())
-                .filter(x -> values.get(0).equals(x))
-                .findAny()
-                .isPresent());
-    }
+		assertTrue(IntStream.range(0, 100)
+				.map(x -> Utils.weightedChoose(values, w, rng).get())
+				.filter(x -> values.get(0).equals(x))
+				.findAny()
+				.isPresent());
+	}
 
-    @Test
-    public void weightedChooseCanChooseLast() {
-        final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        final Function<Integer, Double> w = x -> (double) x;
+	@Test
+	public void weightedChooseCanChooseLast() {
+		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
+		final Function<Integer, Double> w = x -> (double) x;
 
-        assertTrue(IntStream.range(0, 100)
-                .map(x -> Utils.weightedChoose(values, w, rng).get())
-                .filter(x -> values.get(values.size() - 1).equals(x))
-                .findAny()
-                .isPresent());
-    }
+		assertTrue(IntStream.range(0, 100)
+				.map(x -> Utils.weightedChoose(values, w, rng).get())
+				.filter(x -> values.get(values.size() - 1).equals(x))
+				.findAny()
+				.isPresent());
+	}
 
-    @Test
-    public void weightsWork() {
-        final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        final Function<Integer, Double> w = x -> (double) x;
-        final Map<Integer, Integer> count = new HashMap<>();
-        for (final Integer x : values) {
-            count.put(x, 0);
-        }
+	@Test
+	public void weightsWork() {
+		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
+		final Function<Integer, Double> w = x -> (double) x;
+		final Map<Integer, Integer> count = new HashMap<>();
+		for (final Integer x : values) {
+			count.put(x, 0);
+		}
 
-        for (int i = 0; i < 10_000; i++) {
-            final Integer chosen = Utils.weightedChoose(values, w, rng).get();
-            count.put(chosen, count.get(chosen) + 1);
-        }
+		for (int i = 0; i < 10_000; i++) {
+			final Integer chosen = Utils.weightedChoose(values, w, rng).get();
+			count.put(chosen, count.get(chosen) + 1);
+		}
 
-        for (int i = 0; i < values.size() - 1; i++) {
-            final Integer first = values.get(i);
-            final Integer second = values.get(i + 1);
-            assertTrue(
-                    count.get(first) > 0,
-                    String.format("Value %d (with weight %f) did not appear once", first, w.apply(first)));
-            assertTrue(
-                    count.get(first) < count.get(second),
-                    String.format(
-                            "Value %d (with weight %f) appeared more often than value %d (with weight %f): %,d > %,d",
-                            first, w.apply(first), second, w.apply(second), count.get(first), count.get(second)));
-        }
-    }
+		for (int i = 0; i < values.size() - 1; i++) {
+			final Integer first = values.get(i);
+			final Integer second = values.get(i + 1);
+			assertTrue(
+					count.get(first) > 0,
+					String.format("Value %d (with weight %f) did not appear once", first, w.apply(first)));
+			assertTrue(
+					count.get(first) < count.get(second),
+					String.format(
+							"Value %d (with weight %f) appeared more often than value %d (with weight %f): %,d > %,d",
+							first, w.apply(first), second, w.apply(second), count.get(first), count.get(second)));
+		}
+	}
 
-    @Test
-    public void negativeWeightsDoNotWork() {
-        final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        final Function<Integer, Double> w = x -> -(double) x;
+	@Test
+	public void negativeWeightsDoNotWork() {
+		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
+		final Function<Integer, Double> w = x -> -(double) x;
 
-        assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(values, w, rng));
-    }
+		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(values, w, rng));
+	}
 
-    @Test
-    public void weightedChooseWithOneValue() {
-        assertEquals(
-                123, Utils.weightedChoose(List.of(123), x -> (double) x, rng).get());
-    }
+	@Test
+	public void weightedChooseWithOneValue() {
+		assertEquals(
+				123, Utils.weightedChoose(List.of(123), x -> (double) x, rng).get());
+	}
 
-    @Test
-    public void weightedChooseWithNoValues() {
-        assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(List.of(), x -> (double) x, rng));
-    }
+	@Test
+	public void weightedChooseWithNoValues() {
+		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(List.of(), x -> (double) x, rng));
+	}
 }

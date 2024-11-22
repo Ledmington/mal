@@ -32,210 +32,210 @@ import java.util.random.RandomGeneratorFactory;
 
 public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
-    protected final RandomGenerator rng;
-    protected GeneticAlgorithmConfig<X> config = null;
-    protected long startTime;
-    private int generation = 0;
-    protected List<X> population;
-    protected List<X> nextGeneration;
-    protected Map<X, Double> cachedScores;
-    protected int survivingPopulation;
+	protected final RandomGenerator rng;
+	protected GeneticAlgorithmConfig<X> config = null;
+	protected long startTime;
+	private int generation = 0;
+	protected List<X> population;
+	protected List<X> nextGeneration;
+	protected Map<X, Double> cachedScores;
+	protected int survivingPopulation;
 
-    // stats
-    private int mutations = 0;
-    private int crossovers = 0;
-    private int randomCreations = 0;
+	// stats
+	private int mutations = 0;
+	private int crossovers = 0;
+	private int randomCreations = 0;
 
-    protected Set<X> bestOfAllTime; // For optimization. Should not be returned.
-    protected Comparator<X> cachedScoresComparator = null;
+	protected Set<X> bestOfAllTime; // For optimization. Should not be returned.
+	protected Comparator<X> cachedScoresComparator = null;
 
-    public SerialGeneticAlgorithm() {
-        this(RandomGeneratorFactory.getDefault().create(System.nanoTime()));
-    }
+	public SerialGeneticAlgorithm() {
+		this(RandomGeneratorFactory.getDefault().create(System.nanoTime()));
+	}
 
-    public SerialGeneticAlgorithm(final RandomGenerator rng) {
-        this.rng = Objects.requireNonNull(rng);
-    }
+	public SerialGeneticAlgorithm(final RandomGenerator rng) {
+		this.rng = Objects.requireNonNull(rng);
+	}
 
-    public GeneticAlgorithmState<X> getState() {
-        // return a new State with immutable view of the data
-        return new GeneticAlgorithmState<>(
-                generation,
-                Collections.unmodifiableList(population),
-                Collections.unmodifiableMap(cachedScores),
-                mutations,
-                crossovers,
-                randomCreations);
-    }
+	public GeneticAlgorithmState<X> getState() {
+		// return a new State with immutable view of the data
+		return new GeneticAlgorithmState<>(
+				generation,
+				Collections.unmodifiableList(population),
+				Collections.unmodifiableMap(cachedScores),
+				mutations,
+				crossovers,
+				randomCreations);
+	}
 
-    public void setState(final GeneticAlgorithmConfig<X> config) {
-        this.config = config;
-        population = new ArrayList<>(config.populationSize());
-        nextGeneration = new ArrayList<>(config.populationSize());
-        cachedScores = new HashMap<>(config.populationSize(), 1.0f);
-        survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
-        bestOfAllTime = new LinkedHashSet<>(survivingPopulation * 2, 1.0f);
-        startTime = System.currentTimeMillis();
-        cachedScoresComparator = (a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b));
-    }
+	public void setState(final GeneticAlgorithmConfig<X> config) {
+		this.config = config;
+		population = new ArrayList<>(config.populationSize());
+		nextGeneration = new ArrayList<>(config.populationSize());
+		cachedScores = new HashMap<>(config.populationSize(), 1.0f);
+		survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+		bestOfAllTime = new LinkedHashSet<>(survivingPopulation * 2, 1.0f);
+		startTime = System.currentTimeMillis();
+		cachedScoresComparator = (a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b));
+	}
 
-    protected void initialCreation() {
-        population.addAll(config.firstGeneration());
-        while (population.size() < config.populationSize()) {
-            population.add(config.creation().get());
-        }
-    }
+	protected void initialCreation() {
+		population.addAll(config.firstGeneration());
+		while (population.size() < config.populationSize()) {
+			population.add(config.creation().get());
+		}
+	}
 
-    protected void computeScores() {
-        for (final X x : population) {
-            if (!cachedScores.containsKey(x)) {
-                cachedScores.put(x, config.fitnessFunction().apply(x));
-            }
-        }
-    }
+	protected void computeScores() {
+		for (final X x : population) {
+			if (!cachedScores.containsKey(x)) {
+				cachedScores.put(x, config.fitnessFunction().apply(x));
+			}
+		}
+	}
 
-    protected void elitism() {
-        if (bestOfAllTime.isEmpty()) {
-            // the first time compute the last N best solutions from the global
-            // Map of scores
-            cachedScores.entrySet().stream()
-                    .sorted((a, b) -> config.scoreComparator().compare(a.getValue(), b.getValue()))
-                    .limit(survivingPopulation)
-                    .map(Map.Entry::getKey)
-                    .forEach(x -> {
-                        bestOfAllTime.add(x);
-                        nextGeneration.add(x);
-                    });
-        } else {
-            // all the other times, we compute the best N solutions by combining lastBest
-            // and the best N from the current generation
-            population.stream()
-                    .distinct()
-                    .sorted(cachedScoresComparator)
-                    .limit(survivingPopulation)
-                    .forEach(x -> bestOfAllTime.add(x));
-            if (bestOfAllTime.size() < survivingPopulation) {
-                throw new AssertionError(String.format(
-                        "Wrong size: was %,d but should have been at least %,d",
-                        bestOfAllTime.size(), survivingPopulation));
-            }
+	protected void elitism() {
+		if (bestOfAllTime.isEmpty()) {
+			// the first time compute the last N best solutions from the global
+			// Map of scores
+			cachedScores.entrySet().stream()
+					.sorted((a, b) -> config.scoreComparator().compare(a.getValue(), b.getValue()))
+					.limit(survivingPopulation)
+					.map(Map.Entry::getKey)
+					.forEach(x -> {
+						bestOfAllTime.add(x);
+						nextGeneration.add(x);
+					});
+		} else {
+			// all the other times, we compute the best N solutions by combining lastBest
+			// and the best N from the current generation
+			population.stream()
+					.distinct()
+					.sorted(cachedScoresComparator)
+					.limit(survivingPopulation)
+					.forEach(x -> bestOfAllTime.add(x));
+			if (bestOfAllTime.size() < survivingPopulation) {
+				throw new AssertionError(String.format(
+						"Wrong size: was %,d but should have been at least %,d",
+						bestOfAllTime.size(), survivingPopulation));
+			}
 
-            bestOfAllTime.stream()
-                    .sorted(cachedScoresComparator)
-                    .limit(survivingPopulation)
-                    .forEach(x -> nextGeneration.add(x));
+			bestOfAllTime.stream()
+					.sorted(cachedScoresComparator)
+					.limit(survivingPopulation)
+					.forEach(x -> nextGeneration.add(x));
 
-            if (bestOfAllTime.size() < survivingPopulation) {
-                throw new AssertionError(String.format(
-                        "Wrong size2: was %,d but should have been at least %,d",
-                        bestOfAllTime.size(), survivingPopulation));
-            }
+			if (bestOfAllTime.size() < survivingPopulation) {
+				throw new AssertionError(String.format(
+						"Wrong size2: was %,d but should have been at least %,d",
+						bestOfAllTime.size(), survivingPopulation));
+			}
 
-            bestOfAllTime.stream()
-                    .sorted(cachedScoresComparator)
-                    .toList()
-                    .subList(survivingPopulation, bestOfAllTime.size())
-                    .forEach(x -> bestOfAllTime.remove(x));
+			bestOfAllTime.stream()
+					.sorted(cachedScoresComparator)
+					.toList()
+					.subList(survivingPopulation, bestOfAllTime.size())
+					.forEach(x -> bestOfAllTime.remove(x));
 
-            if (bestOfAllTime.size() < survivingPopulation) {
-                throw new AssertionError(String.format(
-                        "Wrong size3: was %,d but should have been at least %,d",
-                        bestOfAllTime.size(), survivingPopulation));
-            }
-        }
-    }
+			if (bestOfAllTime.size() < survivingPopulation) {
+				throw new AssertionError(String.format(
+						"Wrong size3: was %,d but should have been at least %,d",
+						bestOfAllTime.size(), survivingPopulation));
+			}
+		}
+	}
 
-    protected int performCrossovers() {
-        int c = 0;
-        final Supplier<X> weightedRandom = Utils.weightedChoose(population, x -> cachedScores.get(x), rng);
+	protected int performCrossovers() {
+		int c = 0;
+		final Supplier<X> weightedRandom = Utils.weightedChoose(population, x -> cachedScores.get(x), rng);
 
-        for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
-            if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
-                // choose randomly two parents and perform a crossover
-                final X firstParent = weightedRandom.get();
-                X secondParent;
-                do {
-                    secondParent = weightedRandom.get();
-                } while (firstParent.equals(secondParent));
-                nextGeneration.add(config.crossoverOperator().apply(firstParent, secondParent));
-                c++;
-            }
-        }
+		for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
+			if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
+				// choose randomly two parents and perform a crossover
+				final X firstParent = weightedRandom.get();
+				X secondParent;
+				do {
+					secondParent = weightedRandom.get();
+				} while (firstParent.equals(secondParent));
+				nextGeneration.add(config.crossoverOperator().apply(firstParent, secondParent));
+				c++;
+			}
+		}
 
-        return c;
-    }
+		return c;
+	}
 
-    protected int performMutations() {
-        int m = 0;
+	protected int performMutations() {
+		int m = 0;
 
-        for (int i = 0; i < nextGeneration.size(); i++) {
-            if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
-                nextGeneration.set(i, config.mutationOperator().apply(nextGeneration.get(i)));
-                m++;
-            }
-        }
+		for (int i = 0; i < nextGeneration.size(); i++) {
+			if (rng.nextDouble(0.0, 1.0) < config.mutationRate()) {
+				nextGeneration.set(i, config.mutationOperator().apply(nextGeneration.get(i)));
+				m++;
+			}
+		}
 
-        return m;
-    }
+		return m;
+	}
 
-    protected void addRandomCreations(int randomCreations) {
-        for (int i = 0; i < randomCreations; i++) {
-            nextGeneration.add(config.creation().get());
-        }
-    }
+	protected void addRandomCreations(int randomCreations) {
+		for (int i = 0; i < randomCreations; i++) {
+			nextGeneration.add(config.creation().get());
+		}
+	}
 
-    protected void endGeneration() {
-        nextGeneration.clear();
-    }
+	protected void endGeneration() {
+		nextGeneration.clear();
+	}
 
-    private void swapPopulations() {
-        final List<X> tmp = population;
-        population = nextGeneration;
-        nextGeneration = tmp;
-    }
+	private void swapPopulations() {
+		final List<X> tmp = population;
+		population = nextGeneration;
+		nextGeneration = tmp;
+	}
 
-    /**
-     * Checks if the algorithm needs to terminate.
-     *
-     * @return True if at least one more generation can be done.
-     */
-    private boolean checkTerminationConditions() {
-        return (System.currentTimeMillis() - startTime) < config.maxTimeMillis()
-                && generation < config.maxGenerations()
-                && population.stream().noneMatch(config.stopCriterion());
-    }
+	/**
+	 * Checks if the algorithm needs to terminate.
+	 *
+	 * @return True if at least one more generation can be done.
+	 */
+	private boolean checkTerminationConditions() {
+		return (System.currentTimeMillis() - startTime) < config.maxTimeMillis()
+				&& generation < config.maxGenerations()
+				&& population.stream().noneMatch(config.stopCriterion());
+	}
 
-    public void run() {
-        generation = 0;
-        initialCreation();
+	public void run() {
+		generation = 0;
+		initialCreation();
 
-        while (checkTerminationConditions()) {
-            computeScores();
+		while (checkTerminationConditions()) {
+			computeScores();
 
-            elitism();
+			elitism();
 
-            crossovers = performCrossovers();
+			crossovers = performCrossovers();
 
-            mutations = performMutations();
+			mutations = performMutations();
 
-            randomCreations = config.populationSize() - survivingPopulation - crossovers;
+			randomCreations = config.populationSize() - survivingPopulation - crossovers;
 
-            addRandomCreations(randomCreations);
+			addRandomCreations(randomCreations);
 
-            if (population.size() != config.populationSize() || nextGeneration.size() != config.populationSize()) {
-                throw new IllegalStateException(String.format(
-                        "The population and the next generation don't have the right size: they were %,d and %,d but should have been %,d",
-                        population.size(), nextGeneration.size(), config.populationSize()));
-            }
+			if (population.size() != config.populationSize() || nextGeneration.size() != config.populationSize()) {
+				throw new IllegalStateException(String.format(
+						"The population and the next generation don't have the right size: they were %,d and %,d but should have been %,d",
+						population.size(), nextGeneration.size(), config.populationSize()));
+			}
 
-            // swap population and nextGeneration
-            swapPopulations();
+			// swap population and nextGeneration
+			swapPopulations();
 
-            endGeneration();
+			endGeneration();
 
-            generation++;
-        }
+			generation++;
+		}
 
-        bestOfAllTime.clear();
-    }
+		bestOfAllTime.clear();
+	}
 }

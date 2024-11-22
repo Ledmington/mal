@@ -29,234 +29,234 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public record GeneticAlgorithmConfig<X>(
-        int populationSize,
-        double survivalRate,
-        double crossoverRate,
-        double mutationRate,
-        Supplier<X> creation,
-        BiFunction<X, X, X> crossoverOperator,
-        Function<X, X> mutationOperator,
-        Function<X, Double> fitnessFunction,
-        Comparator<Double> scoreComparator,
-        Set<X> firstGeneration,
-        long maxTimeMillis,
-        int maxGenerations,
-        Predicate<X> stopCriterion) {
+		int populationSize,
+		double survivalRate,
+		double crossoverRate,
+		double mutationRate,
+		Supplier<X> creation,
+		BiFunction<X, X, X> crossoverOperator,
+		Function<X, X> mutationOperator,
+		Function<X, Double> fitnessFunction,
+		Comparator<Double> scoreComparator,
+		Set<X> firstGeneration,
+		long maxTimeMillis,
+		int maxGenerations,
+		Predicate<X> stopCriterion) {
 
-    public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
-        return new GeneticAlgorithmConfigBuilder<>();
-    }
+	public static <T> GeneticAlgorithmConfigBuilder<T> builder() {
+		return new GeneticAlgorithmConfigBuilder<>();
+	}
 
-    private static int assertPopulationSizeIsValid(int pop) {
-        if (pop < 2) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid population size: needs to be >= 2 but was %,d", pop));
-        }
-        return pop;
-    }
+	private static int assertPopulationSizeIsValid(int pop) {
+		if (pop < 2) {
+			throw new IllegalArgumentException(
+					String.format("Invalid population size: needs to be >= 2 but was %,d", pop));
+		}
+		return pop;
+	}
 
-    private static int assertMaxGenerationsIsValid(int generations) {
-        if (generations < 0) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid max generations: needs to be >= 0 but was %,d", generations));
-        }
-        return generations;
-    }
+	private static int assertMaxGenerationsIsValid(int generations) {
+		if (generations < 0) {
+			throw new IllegalArgumentException(
+					String.format("Invalid max generations: needs to be >= 0 but was %,d", generations));
+		}
+		return generations;
+	}
 
-    private static long assertMaxSecondsIsValid(long maxSeconds) {
-        if (maxSeconds < 0) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid max seconds: needs to be >= 0 but was %,d", maxSeconds));
-        }
-        return maxSeconds;
-    }
+	private static long assertMaxSecondsIsValid(long maxSeconds) {
+		if (maxSeconds < 0) {
+			throw new IllegalArgumentException(
+					String.format("Invalid max seconds: needs to be >= 0 but was %,d", maxSeconds));
+		}
+		return maxSeconds;
+	}
 
-    private static double assertSurvivalRateIsValid(double rate) {
-        if (rate <= 0.0 || rate >= 1.0) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid survival rate: needs to be > 0 and < 1 but was %f", rate));
-        }
-        return rate;
-    }
+	private static double assertSurvivalRateIsValid(double rate) {
+		if (rate <= 0.0 || rate >= 1.0) {
+			throw new IllegalArgumentException(
+					String.format("Invalid survival rate: needs to be > 0 and < 1 but was %f", rate));
+		}
+		return rate;
+	}
 
-    private static double assertCrossoverRateIsValid(double rate) {
-        if (rate <= 0.0 || rate >= 1.0) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid crossover rate: needs to be > 0 and < 1 but was %f", rate));
-        }
-        return rate;
-    }
+	private static double assertCrossoverRateIsValid(double rate) {
+		if (rate <= 0.0 || rate >= 1.0) {
+			throw new IllegalArgumentException(
+					String.format("Invalid crossover rate: needs to be > 0 and < 1 but was %f", rate));
+		}
+		return rate;
+	}
 
-    private static double assertMutationRateIsValid(double rate) {
-        if (rate <= 0.0 || rate >= 1.0) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid mutation rate: needs to be > 0 and < 1 but was %f", rate));
-        }
-        return rate;
-    }
+	private static double assertMutationRateIsValid(double rate) {
+		if (rate <= 0.0 || rate >= 1.0) {
+			throw new IllegalArgumentException(
+					String.format("Invalid mutation rate: needs to be > 0 and < 1 but was %f", rate));
+		}
+		return rate;
+	}
 
-    public static final class GeneticAlgorithmConfigBuilder<X> {
+	public static final class GeneticAlgorithmConfigBuilder<X> {
 
-        private boolean alreadyBuilt = false;
-        private int populationSize = 100;
-        private double survivalRate = 0.1;
-        private double crossoverRate = 0.7;
-        private double mutationRate = 0.1;
-        private Supplier<X> randomCreation = null;
-        private BiFunction<X, X, X> crossoverOperator = null;
-        private Function<X, X> mutationOperator = null;
-        private Function<X, Double> fitnessFunction = null;
-        private Comparator<Double> scoreComparator = null;
-        private final Set<X> firstGeneration = new HashSet<>();
-        private long maxTime =
-                Instant.now().plus(1, TimeUnit.HOURS.toChronoUnit()).toEpochMilli();
-        private int maxGenerations = Integer.MAX_VALUE;
-        private Predicate<X> stopCriterion = x -> false;
+		private boolean alreadyBuilt = false;
+		private int populationSize = 100;
+		private double survivalRate = 0.1;
+		private double crossoverRate = 0.7;
+		private double mutationRate = 0.1;
+		private Supplier<X> randomCreation = null;
+		private BiFunction<X, X, X> crossoverOperator = null;
+		private Function<X, X> mutationOperator = null;
+		private Function<X, Double> fitnessFunction = null;
+		private Comparator<Double> scoreComparator = null;
+		private final Set<X> firstGeneration = new HashSet<>();
+		private long maxTime =
+				Instant.now().plus(1, TimeUnit.HOURS.toChronoUnit()).toEpochMilli();
+		private int maxGenerations = Integer.MAX_VALUE;
+		private Predicate<X> stopCriterion = x -> false;
 
-        public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
-            assertPopulationSizeIsValid(pop);
-            populationSize = pop;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
+			assertPopulationSizeIsValid(pop);
+			populationSize = pop;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> survivalRate(double rate) {
-            assertSurvivalRateIsValid(rate);
-            survivalRate = rate;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> survivalRate(double rate) {
+			assertSurvivalRateIsValid(rate);
+			survivalRate = rate;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> crossoverRate(double rate) {
-            assertCrossoverRateIsValid(rate);
-            crossoverRate = rate;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> crossoverRate(double rate) {
+			assertCrossoverRateIsValid(rate);
+			crossoverRate = rate;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> mutationRate(double rate) {
-            assertMutationRateIsValid(rate);
-            mutationRate = rate;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> mutationRate(double rate) {
+			assertMutationRateIsValid(rate);
+			mutationRate = rate;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> maxGenerations(int generations) {
-            assertMaxGenerationsIsValid(generations);
-            maxGenerations = generations;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> maxGenerations(int generations) {
+			assertMaxGenerationsIsValid(generations);
+			maxGenerations = generations;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> stopCriterion(final Predicate<X> criterion) {
-            Objects.requireNonNull(criterion, "The stopping criterion cannot be null");
-            stopCriterion = criterion;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> stopCriterion(final Predicate<X> criterion) {
+			Objects.requireNonNull(criterion, "The stopping criterion cannot be null");
+			stopCriterion = criterion;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> maxSeconds(int maxSeconds) {
-            assertMaxSecondsIsValid(maxSeconds);
-            maxTime = maxSeconds * 1_000L;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> maxSeconds(int maxSeconds) {
+			assertMaxSecondsIsValid(maxSeconds);
+			maxTime = maxSeconds * 1_000L;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> creation(final Supplier<X> creation) {
-            Objects.requireNonNull(creation, "The creation function cannot be null");
-            randomCreation = creation;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> creation(final Supplier<X> creation) {
+			Objects.requireNonNull(creation, "The creation function cannot be null");
+			randomCreation = creation;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> crossover(final BiFunction<X, X, X> crossover) {
-            Objects.requireNonNull(crossover, "The crossover operator cannot be null");
-            crossoverOperator = crossover;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> crossover(final BiFunction<X, X, X> crossover) {
+			Objects.requireNonNull(crossover, "The crossover operator cannot be null");
+			crossoverOperator = crossover;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> mutation(final Function<X, X> mutation) {
-            Objects.requireNonNull(mutation, "The mutation operator cannot be null");
-            mutationOperator = mutation;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> mutation(final Function<X, X> mutation) {
+			Objects.requireNonNull(mutation, "The mutation operator cannot be null");
+			mutationOperator = mutation;
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> maximize(final Function<X, Double> fitness) {
-            Objects.requireNonNull(fitness, "The fitness function cannot be null");
-            fitnessFunction = fitness;
-            scoreComparator = (a, b) -> -Double.compare(a, b);
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> maximize(final Function<X, Double> fitness) {
+			Objects.requireNonNull(fitness, "The fitness function cannot be null");
+			fitnessFunction = fitness;
+			scoreComparator = (a, b) -> -Double.compare(a, b);
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> minimize(final Function<X, Double> fitness) {
-            Objects.requireNonNull(fitness, "The fitness function cannot be null");
-            fitnessFunction = fitness;
-            scoreComparator = Double::compare;
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> minimize(final Function<X, Double> fitness) {
+			Objects.requireNonNull(fitness, "The fitness function cannot be null");
+			fitnessFunction = fitness;
+			scoreComparator = Double::compare;
+			return this;
+		}
 
-        @SafeVarargs
-        public final GeneticAlgorithmConfigBuilder<X> firstGeneration(final X... objects) {
-            for (final X obj : objects) {
-                this.firstGeneration.add(Objects.requireNonNull(obj));
-            }
-            return this;
-        }
+		@SafeVarargs
+		public final GeneticAlgorithmConfigBuilder<X> firstGeneration(final X... objects) {
+			for (final X obj : objects) {
+				this.firstGeneration.add(Objects.requireNonNull(obj));
+			}
+			return this;
+		}
 
-        public GeneticAlgorithmConfigBuilder<X> firstGeneration(final Set<X> objects) {
-            for (final X obj : objects) {
-                this.firstGeneration.add(Objects.requireNonNull(obj));
-            }
-            return this;
-        }
+		public GeneticAlgorithmConfigBuilder<X> firstGeneration(final Set<X> objects) {
+			for (final X obj : objects) {
+				this.firstGeneration.add(Objects.requireNonNull(obj));
+			}
+			return this;
+		}
 
-        public GeneticAlgorithmConfig<X> build() {
-            if (alreadyBuilt) {
-                throw new IllegalStateException("Cannot build the same GeneticAlgorithmConfigBuilder two times");
-            }
+		public GeneticAlgorithmConfig<X> build() {
+			if (alreadyBuilt) {
+				throw new IllegalStateException("Cannot build the same GeneticAlgorithmConfigBuilder two times");
+			}
 
-            this.alreadyBuilt = true;
-            return new GeneticAlgorithmConfig<>(
-                    populationSize,
-                    survivalRate,
-                    crossoverRate,
-                    mutationRate,
-                    randomCreation,
-                    crossoverOperator,
-                    mutationOperator,
-                    fitnessFunction,
-                    scoreComparator,
-                    firstGeneration,
-                    maxTime,
-                    maxGenerations,
-                    stopCriterion);
-        }
-    }
+			this.alreadyBuilt = true;
+			return new GeneticAlgorithmConfig<>(
+					populationSize,
+					survivalRate,
+					crossoverRate,
+					mutationRate,
+					randomCreation,
+					crossoverOperator,
+					mutationOperator,
+					fitnessFunction,
+					scoreComparator,
+					firstGeneration,
+					maxTime,
+					maxGenerations,
+					stopCriterion);
+		}
+	}
 
-    public GeneticAlgorithmConfig(
-            int populationSize,
-            double survivalRate,
-            double crossoverRate,
-            double mutationRate,
-            Supplier<X> creation,
-            BiFunction<X, X, X> crossoverOperator,
-            Function<X, X> mutationOperator,
-            Function<X, Double> fitnessFunction,
-            Comparator<Double> scoreComparator,
-            Set<X> firstGeneration,
-            long maxTimeMillis,
-            int maxGenerations,
-            Predicate<X> stopCriterion) {
-        this.populationSize = assertPopulationSizeIsValid(populationSize);
-        this.survivalRate = assertSurvivalRateIsValid(survivalRate);
-        this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
-        this.mutationRate = assertMutationRateIsValid(mutationRate);
-        this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
-        this.crossoverOperator = Objects.requireNonNull(crossoverOperator, "The crossover operator cannot be null");
-        this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
-        this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
-        this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
-        this.firstGeneration = Objects.requireNonNull(firstGeneration, "The first generation cannot be null");
-        this.maxTimeMillis = assertMaxSecondsIsValid(maxTimeMillis);
-        this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
-        this.stopCriterion = Objects.requireNonNull(stopCriterion, "The stop criterion cannot be null");
+	public GeneticAlgorithmConfig(
+			int populationSize,
+			double survivalRate,
+			double crossoverRate,
+			double mutationRate,
+			Supplier<X> creation,
+			BiFunction<X, X, X> crossoverOperator,
+			Function<X, X> mutationOperator,
+			Function<X, Double> fitnessFunction,
+			Comparator<Double> scoreComparator,
+			Set<X> firstGeneration,
+			long maxTimeMillis,
+			int maxGenerations,
+			Predicate<X> stopCriterion) {
+		this.populationSize = assertPopulationSizeIsValid(populationSize);
+		this.survivalRate = assertSurvivalRateIsValid(survivalRate);
+		this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);
+		this.mutationRate = assertMutationRateIsValid(mutationRate);
+		this.creation = Objects.requireNonNull(creation, "The creation function cannot be null");
+		this.crossoverOperator = Objects.requireNonNull(crossoverOperator, "The crossover operator cannot be null");
+		this.mutationOperator = Objects.requireNonNull(mutationOperator, "The mutation operator cannot be null");
+		this.fitnessFunction = Objects.requireNonNull(fitnessFunction, "The fitness function cannot be null");
+		this.scoreComparator = Objects.requireNonNull(scoreComparator, "The score comparator cannot be null");
+		this.firstGeneration = Objects.requireNonNull(firstGeneration, "The first generation cannot be null");
+		this.maxTimeMillis = assertMaxSecondsIsValid(maxTimeMillis);
+		this.maxGenerations = assertMaxGenerationsIsValid(maxGenerations);
+		this.stopCriterion = Objects.requireNonNull(stopCriterion, "The stop criterion cannot be null");
 
-        if (firstGeneration.size() > populationSize) {
-            throw new IllegalArgumentException(String.format(
-                    "Invalid first generation size: should have been <= %,d but was %,d",
-                    populationSize, firstGeneration.size()));
-        }
-    }
+		if (firstGeneration.size() > populationSize) {
+			throw new IllegalArgumentException(String.format(
+					"Invalid first generation size: should have been <= %,d but was %,d",
+					populationSize, firstGeneration.size()));
+		}
+	}
 }

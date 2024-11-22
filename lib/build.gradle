@@ -12,8 +12,8 @@ dependencies {
 pitest {
     targetClasses.set(['com.ledmington.mal.*'])
     targetTests.set(['com.ledmington.mal.*'])
-    pitestVersion = '1.14.4' //not needed when a default PIT version should be used
-    junit5PluginVersion = '1.2.0'
+    pitestVersion = '1.17.1' // not needed when a default PIT version should be used
+    junit5PluginVersion = '1.2.1'
     threads = 4
     outputFormats.set(['HTML'])
     verbose = true
