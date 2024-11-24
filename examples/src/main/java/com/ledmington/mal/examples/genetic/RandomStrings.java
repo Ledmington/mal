@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.mal.examples;
+package com.ledmington.mal.examples.genetic;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -25,9 +25,9 @@ import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
 
-import com.ledmington.mal.GeneticAlgorithm;
-import com.ledmington.mal.GeneticAlgorithmConfig;
-import com.ledmington.mal.SerialGeneticAlgorithm;
+import com.ledmington.mal.genetic.GeneticAlgorithm;
+import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
+import com.ledmington.mal.genetic.SerialGeneticAlgorithm;
 
 public final class RandomStrings {
 	public RandomStrings() {
@@ -36,7 +36,7 @@ public final class RandomStrings {
 		final String alphabet =
 				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-_@#[]{}()!?='\"+*/";
 		final String targetString =
-				"This library for Genetic Algorithms is absolutely fantastic! I cannot wait to try and use it with Java 17 and Gradle 8.7! Now let's write another time just to have longer strings and, therefore, add artificial complexity to the problem.";
+				"This library for Minimization Algorithms is absolutely fantastic! I cannot wait to try and use it with Java 21 and Gradle 8.11! Now let's write another time just to have longer strings and, therefore, add artificial complexity to the problem.";
 		final int targetLength = targetString.length();
 		final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 

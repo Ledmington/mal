@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.mal.examples;
+package com.ledmington.mal.examples.genetic;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,11 +31,11 @@ import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
 
-import com.ledmington.mal.GeneticAlgorithm;
-import com.ledmington.mal.GeneticAlgorithmConfig;
-import com.ledmington.mal.ParallelGeneticAlgorithm;
+import com.ledmington.mal.genetic.GeneticAlgorithm;
+import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
+import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 
-public final class GeneticTsp {
+public final class Tsp {
 
 	private static final RandomGenerator rng =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
@@ -130,7 +130,7 @@ public final class GeneticTsp {
 		return x;
 	}
 
-	public GeneticTsp() {
+	public Tsp() {
 		final long beginning = System.nanoTime();
 		final int nCities = 30;
 		final double[][] coordinates = new double[2][nCities];

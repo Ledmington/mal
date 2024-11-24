@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.mal.examples;
+package com.ledmington.mal.examples.genetic;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,9 +23,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-import com.ledmington.mal.GeneticAlgorithm;
-import com.ledmington.mal.GeneticAlgorithmConfig;
-import com.ledmington.mal.ParallelGeneticAlgorithm;
+import com.ledmington.mal.genetic.GeneticAlgorithm;
+import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
+import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 
 public final class NeuralNetwork {
 

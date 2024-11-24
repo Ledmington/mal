@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.mal;
+package com.ledmington.mal.genetic;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
+
+import com.ledmington.mal.Utils;
 
 public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X> {
 

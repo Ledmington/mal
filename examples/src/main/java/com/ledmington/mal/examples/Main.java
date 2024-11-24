@@ -20,19 +20,35 @@ package com.ledmington.mal.examples;
 import java.util.Map;
 import java.util.Optional;
 
+import com.ledmington.mal.examples.genetic.Diet;
+import com.ledmington.mal.examples.genetic.Knapsack;
+import com.ledmington.mal.examples.genetic.NeuralNetwork;
+import com.ledmington.mal.examples.genetic.Tsp;
+
 public final class Main {
 
-	private static final Map<String, Runnable> examples = Map.of(
-			"GeneticTsp",
-			GeneticTsp::new,
-			"RandomStrings",
-			RandomStrings::new,
-			"Knapsack",
-			Knapsack::new,
-			"NeuralNetwork",
-			NeuralNetwork::new,
-			"Diet",
-			Diet::new);
+	private static final Map<String, Map<String, Runnable>> examples = Map.of(
+			"genetic",
+			Map.of(
+					"Tsp",
+					Tsp::new,
+					"RandomStrings",
+					com.ledmington.mal.examples.genetic.RandomStrings::new,
+					"Knapsack",
+					Knapsack::new,
+					"NeuralNetwork",
+					NeuralNetwork::new,
+					"Diet",
+					Diet::new),
+			"simulated_annealing",
+			Map.of("RandomStrings", com.ledmington.mal.examples.annealing.RandomStrings::new));
+
+	private static void printAvailableAlgorithms() {
+		System.out.println("These are the available examples:");
+		System.out.println(" - genetic");
+		System.out.println(" - simulated_annealing");
+		System.out.println();
+	}
 
 	private static void printAvailableExamples() {
 		System.out.println("These are the available examples:");
@@ -43,21 +59,39 @@ public final class Main {
 
 	public static void main(final String[] args) {
 		if (args.length == 0) {
+			printAvailableAlgorithms();
 			printAvailableExamples();
 			System.out.println("\nRerun the program with the name of the example.");
-			System.exit(0);
+			System.exit(1);
+			return;
 		}
 
-		final Optional<String> chosenExample = examples.keySet().stream()
-				.filter(k -> k.equalsIgnoreCase(args[0]))
+		final String algorithm = args[0];
+		final String example = args[1];
+
+		final Optional<String> chosenAlgorithm = examples.keySet().stream()
+				.filter(k -> k.equalsIgnoreCase(algorithm))
+				.findFirst();
+		if (chosenAlgorithm.isEmpty()) {
+			System.out.printf("The algorithm '%s' does not exist.\n", algorithm);
+			printAvailableAlgorithms();
+			System.exit(1);
+			return;
+		}
+
+		final Optional<String> chosenExample = examples.get(chosenAlgorithm.orElseThrow()).keySet().stream()
+				.filter(k -> k.equalsIgnoreCase(example))
 				.findFirst();
 		if (chosenExample.isEmpty()) {
-			System.out.printf("The examples '%s' does not exist.\n", args[0]);
+			System.out.printf("The example '%s' does not exist.\n", example);
 			printAvailableExamples();
 			System.exit(1);
+			return;
 		}
 
-		examples.get(chosenExample.orElseThrow()).run();
+		examples.get(chosenAlgorithm.orElseThrow())
+				.get(chosenExample.orElseThrow())
+				.run();
 
 		// needed for automatic termination of the executors
 		System.exit(0);

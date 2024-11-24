@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.mal;
+package com.ledmington.mal.genetic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.ledmington.mal.GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder;
+import com.ledmington.mal.genetic.GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder;
 
 public abstract class GATest {
 
