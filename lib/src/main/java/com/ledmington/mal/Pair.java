@@ -15,12 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.ledmington.mal.patternsearch;
+package com.ledmington.mal;
 
-public interface PatternSearch<X> {
-	static <X> PatternSearchBuilder<X> builder() {
-		return new PatternSearchBuilder<>();
-	}
-
-	void run();
-}
+public record Pair<X, Y>(X first, Y second) {}

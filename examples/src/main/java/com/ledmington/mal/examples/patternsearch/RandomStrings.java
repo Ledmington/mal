@@ -36,15 +36,15 @@ public final class RandomStrings {
 		final int targetLength = targetString.length();
 		final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 
-		final PatternSearch<String> ps = new PatternSearch<>(
-				1.0,
-				0.5,
-				1.0,
-				IntStream.range(0, targetLength)
+		final PatternSearch<String> ps = PatternSearch.<String>builder()
+				.step(1.0)
+				.factor(0.5)
+				.epsilon(1.0)
+				.startingPoint(IntStream.range(0, targetLength)
 						.mapToObj(x -> "" + randomChar.get())
-						.collect(Collectors.joining()),
-				targetLength,
-				s -> {
+						.collect(Collectors.joining()))
+				.dimensions(targetLength)
+				.minimize(s -> {
 					int count = Math.abs(targetLength - s.length());
 					for (int i = 0; i < Math.min(targetLength, s.length()); i++) {
 						if (s.charAt(i) != targetString.charAt(i)) {
@@ -52,8 +52,8 @@ public final class RandomStrings {
 						}
 					}
 					return (double) count;
-				},
-				(s, d, h) -> {
+				})
+				.neighbor((s, d, h) -> {
 					final int index = alphabet.indexOf(s.charAt(d));
 					final int newIndex = ((int) (index + h) + alphabet.length()) % alphabet.length();
 					final char newChar = alphabet.charAt(newIndex);
@@ -61,7 +61,8 @@ public final class RandomStrings {
 						return newChar + s.substring(1);
 					}
 					return s.substring(0, d) + newChar + s.substring(d + 1);
-				});
+				})
+				.build();
 		ps.run();
 
 		final long end = System.nanoTime();

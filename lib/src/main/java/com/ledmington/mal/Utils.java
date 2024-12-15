@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 public final class Utils {
+
 	private Utils() {}
 
 	public static <X> Supplier<X> weightedChoose(

@@ -10,7 +10,7 @@
 |---------------------|---------|-----------|
 | Genetic             | ✔       | ✔         |
 | Simulated Annealing | ✔       |           |
-| Pattern Search      | ✔       |           |
+| Pattern Search      | ✔       | ✔         |
 
 ## Requirements
 To build:

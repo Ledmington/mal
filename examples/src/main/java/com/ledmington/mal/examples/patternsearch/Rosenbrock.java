@@ -57,18 +57,18 @@ public final class Rosenbrock {
 
 		final double a = 1.0;
 		final double b = 10.0;
-		final int d = 16;
+		final int d = 150;
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-		final PatternSearch<Solution> ps = new PatternSearch<>(
-				1.0,
-				0.9,
-				1.0e-6,
-				new Solution(IntStream.range(0, d)
+		final PatternSearch<Solution> ps = PatternSearch.<Solution>builder()
+				.step(1.0)
+				.factor(0.9)
+				.epsilon(1e-6)
+				.dimensions(d)
+				.startingPoint(new Solution(IntStream.range(0, d)
 						.mapToDouble(x -> rng.nextDouble(-5.0, 5.0))
-						.toArray()),
-				d,
-				sol -> {
+						.toArray()))
+				.minimize(sol -> {
 					double s = 0.0;
 					for (int i = 0; i < d - 1; i++) {
 						final double x = sol.get(i);
@@ -78,15 +78,17 @@ public final class Rosenbrock {
 						s += t1 * t1 + b * t2 * t2;
 					}
 					return s;
-				},
-				(solution, position, h) -> {
+				})
+				.neighbor((solution, position, h) -> {
 					final double[] newX = new double[d];
 					for (int i = 0; i < d; i++) {
 						newX[i] = solution.get(i);
 					}
 					newX[position] += h;
 					return new Solution(newX);
-				});
+				})
+				.parallel(Runtime.getRuntime().availableProcessors())
+				.build();
 		ps.run();
 
 		final long end = System.nanoTime();
