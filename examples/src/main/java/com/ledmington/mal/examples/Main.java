@@ -61,7 +61,8 @@ public final class Main {
 		if (args.length == 0) {
 			printAvailableAlgorithms();
 			printAvailableExamples();
-			System.out.println("\nRerun the program with the name of the example.");
+			System.out.println(
+					"\nRerun the program like this: java -jar examples.jar simulated_annealing randomstrings");
 			System.exit(1);
 			return;
 		}
