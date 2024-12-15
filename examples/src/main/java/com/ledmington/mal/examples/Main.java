@@ -30,39 +30,46 @@ public final class Main {
 	private static final Map<String, Map<String, Runnable>> examples = Map.of(
 			"genetic",
 			Map.of(
-					"Tsp",
+					"tsp",
 					Tsp::new,
-					"RandomStrings",
+					"random_strings",
 					com.ledmington.mal.examples.genetic.RandomStrings::new,
-					"Knapsack",
+					"knapsack",
 					Knapsack::new,
-					"NeuralNetwork",
+					"neural_network",
 					NeuralNetwork::new,
-					"Diet",
+					"diet",
 					Diet::new),
 			"simulated_annealing",
-			Map.of("RandomStrings", com.ledmington.mal.examples.annealing.RandomStrings::new));
+			Map.of("random_strings", com.ledmington.mal.examples.annealing.RandomStrings::new),
+			"pattern_search",
+			Map.of(
+					"random_strings",
+					com.ledmington.mal.examples.patternsearch.RandomStrings::new,
+					"rosenbrock",
+					com.ledmington.mal.examples.patternsearch.Rosenbrock::new));
 
 	private static void printAvailableAlgorithms() {
-		System.out.println("These are the available examples:");
-		System.out.println(" - genetic");
-		System.out.println(" - simulated_annealing");
+		System.out.println("These are the available algorithms:");
+		examples.keySet().stream().sorted().forEach(k -> System.out.printf(" - %s\n", k));
 		System.out.println();
 	}
 
-	private static void printAvailableExamples() {
-		System.out.println("These are the available examples:");
-		for (final String name : examples.keySet()) {
-			System.out.printf(" - %s\n", name);
+	private static void printAvailableAlgorithmsAndExamples() {
+		System.out.println("These are the available examples divided by algorithms:");
+		for (final String algo : examples.keySet()) {
+			System.out.printf(" - %s:\n", algo);
+			for (final String ex : examples.get(algo).keySet()) {
+				System.out.printf("   - %s\n", ex);
+			}
 		}
 	}
 
 	public static void main(final String[] args) {
 		if (args.length == 0) {
-			printAvailableAlgorithms();
-			printAvailableExamples();
+			printAvailableAlgorithmsAndExamples();
 			System.out.println(
-					"\nRerun the program like this: java -jar examples.jar simulated_annealing randomstrings");
+					"\nRerun the program like this: java -jar examples.jar simulated_annealing random_strings");
 			System.exit(1);
 			return;
 		}
@@ -80,19 +87,18 @@ public final class Main {
 			return;
 		}
 
-		final Optional<String> chosenExample = examples.get(chosenAlgorithm.orElseThrow()).keySet().stream()
+		final String alg = chosenAlgorithm.orElseThrow();
+		final Optional<String> chosenExample = examples.get(alg).keySet().stream()
 				.filter(k -> k.equalsIgnoreCase(example))
 				.findFirst();
 		if (chosenExample.isEmpty()) {
 			System.out.printf("The example '%s' does not exist.\n", example);
-			printAvailableExamples();
+			printAvailableAlgorithmsAndExamples();
 			System.exit(1);
 			return;
 		}
 
-		examples.get(chosenAlgorithm.orElseThrow())
-				.get(chosenExample.orElseThrow())
-				.run();
+		examples.get(alg).get(chosenExample.orElseThrow()).run();
 
 		// needed for automatic termination of the executors
 		System.exit(0);
