@@ -41,7 +41,7 @@ public final class RandomStrings {
 				.factor(0.5)
 				.epsilon(1.0)
 				.startingPoint(IntStream.range(0, targetLength)
-						.mapToObj(x -> "" + randomChar.get())
+						.mapToObj(x -> Character.toString(randomChar.get()))
 						.collect(Collectors.joining()))
 				.dimensions(targetLength)
 				.minimize(s -> {

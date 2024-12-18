@@ -62,9 +62,9 @@ public final class SimulatedAnnealing<X> {
 
 		for (int k = 0; k < maxIterations; k++) {
 			final double temperature = 1.0 - ((double) (k + 1) / (double) maxIterations);
-			System.out.printf("Iteration %,d of %,d (t = %.6e)\n", k, maxIterations, temperature);
-			System.out.printf("  Best solution : '%s'\n", current);
-			System.out.printf("  Best score : %+.6f\n", currentEnergy);
+			System.out.printf("Iteration %,d of %,d (t = %.6e)%n", k, maxIterations, temperature);
+			System.out.printf("  Best solution : '%s'%n", current);
+			System.out.printf("  Best score : %+.6f%n", currentEnergy);
 			System.out.println();
 
 			next = generateRandomNeighbor.apply(current);

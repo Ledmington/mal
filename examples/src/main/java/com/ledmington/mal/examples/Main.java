@@ -51,16 +51,16 @@ public final class Main {
 
 	private static void printAvailableAlgorithms() {
 		System.out.println("These are the available algorithms:");
-		examples.keySet().stream().sorted().forEach(k -> System.out.printf(" - %s\n", k));
+		examples.keySet().stream().sorted().forEach(k -> System.out.printf(" - %s%n", k));
 		System.out.println();
 	}
 
 	private static void printAvailableAlgorithmsAndExamples() {
 		System.out.println("These are the available examples divided by algorithms:");
-		for (final String algo : examples.keySet()) {
-			System.out.printf(" - %s:\n", algo);
-			for (final String ex : examples.get(algo).keySet()) {
-				System.out.printf("   - %s\n", ex);
+		for (final Map.Entry<String, Map<String, Runnable>> e : examples.entrySet()) {
+			System.out.printf(" - %s:%n", e.getKey());
+			for (final String ex : e.getValue().keySet()) {
+				System.out.printf("   - %s%n", ex);
 			}
 		}
 	}
@@ -81,7 +81,7 @@ public final class Main {
 				.filter(k -> k.equalsIgnoreCase(algorithm))
 				.findFirst();
 		if (chosenAlgorithm.isEmpty()) {
-			System.out.printf("The algorithm '%s' does not exist.\n", algorithm);
+			System.out.printf("The algorithm '%s' does not exist.%n", algorithm);
 			printAvailableAlgorithms();
 			System.exit(1);
 			return;
@@ -92,7 +92,7 @@ public final class Main {
 				.filter(k -> k.equalsIgnoreCase(example))
 				.findFirst();
 		if (chosenExample.isEmpty()) {
-			System.out.printf("The example '%s' does not exist.\n", example);
+			System.out.printf("The example '%s' does not exist.%n", example);
 			printAvailableAlgorithmsAndExamples();
 			System.exit(1);
 			return;

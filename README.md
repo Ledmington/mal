@@ -11,8 +11,13 @@
 | Genetic             | ✔       | ✔         |
 | Simulated Annealing | ✔       |           |
 | Pattern Search      | ✔       | ✔         |
+| Swarm Search        |         |           |
+| BFGS                |         |           |
+| L-BFGS              |         |           |
+| Nelder-Mead         |         |           |
+| Grid                |         |           |
 
-## Requirements
-To build:
-- gradle
-- java >= 21
+## How to contribute
+```bash
+./gradlew build
+```
