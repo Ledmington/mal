@@ -2,10 +2,10 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'pmd'
-    id 'com.github.spotbugs' version '6.0.26'
+    id 'com.github.spotbugs' version '6.1.5'
     id 'com.adarshr.test-logger' version '4.0.0'
-    id 'com.diffplug.spotless' version '6.25.0'
-    id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'com.diffplug.spotless' version '7.0.2'
+    id 'com.github.ben-manes.versions' version '0.52.0'
 }
 
 static def path(String... args) {
@@ -19,7 +19,7 @@ String appDescription = 'A collection of minimization algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
 
-ext.junitVersion = '5.11.3'
+ext.junitVersion = '5.12.0'
 
 allprojects {
     apply plugin: 'java'
@@ -93,7 +93,7 @@ allprojects {
 
         showSummary true
         showSimpleNames false
-        showPassed true
+        showPassed false
         showSkipped true
         showFailed true
         showOnlySlow false
@@ -116,7 +116,7 @@ allprojects {
     }
 
     spotbugs {
-        toolVersion = '4.8.6'
+        toolVersion = '4.9.1'
 
         ignoreFailures = false
         showStackTraces = true
@@ -136,7 +136,7 @@ spotless {
     format 'misc', {
         target '*.md', '.gitignore', '.gitattributes'
         trimTrailingWhitespace()
-        indentWithTabs()
+        leadingSpacesToTabs()
         endWithNewline()
         setEncoding('utf-8')
     }
@@ -148,8 +148,8 @@ spotless {
         }
         setEncoding('utf-8')
         removeUnusedImports()
-        palantirJavaFormat('2.50.0').formatJavadoc(true)
-        indentWithTabs()
+        palantirJavaFormat('2.52.0').formatJavadoc(true)
+        leadingSpacesToTabs()
         formatAnnotations()
         trimTrailingWhitespace()
         endWithNewline()

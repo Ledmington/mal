@@ -12,7 +12,7 @@ dependencies {
 pitest {
     targetClasses.set(['com.ledmington.mal.*'])
     targetTests.set(['com.ledmington.mal.*'])
-    pitestVersion = '1.17.2' // not needed when a default PIT version should be used
+    pitestVersion = '1.18.2' // not needed when a default PIT version should be used
     junit5PluginVersion = '1.2.1'
     threads = 4
     outputFormats.set(['HTML'])
