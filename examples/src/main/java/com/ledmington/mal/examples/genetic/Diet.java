@@ -38,12 +38,12 @@ public final class Diet {
 
 	private enum Food {
 		BANANA("banana", 0.89, 890.0, 0.93, 0.04, 0.03),
-		CARROT("carrot", 0.54, 410.0, 0.86, 0.9, 0.05),
+		CARROT("carrot", 0.54, 410.0, 0.86, 0.09, 0.05),
 		APPLE("apple", 0.94, 521.978, 0.2653, 0.0045, 0.00317),
 		PIZZA("pizza", 5.0, 2710.0, 0.33, 0.11, 0.1),
-		STEAK("steak", 15.49, 2105.882, 0.0, 0.1452, 0.0424),
+		STEAK("steak", 15.49, 2105.882, 0.0001, 0.1452, 0.0424),
 		LENTILS("lentils", 1.39, 1175.0, 0.1702, 0.25, 0.01846),
-		PARMESAN("parmesan", 10.55, 4310.0, 0.003, 0.3463, 0.6535);
+		PARMESAN("parmesan", 10.55, 4310.0, 0.003, 0.3453, 0.6515);
 
 		private final String name;
 		private final double avgPricePerKilo;
@@ -59,21 +59,31 @@ public final class Diet {
 				final double carbsPercentage,
 				final double proteinsPercentage,
 				final double fatsPercentage) {
-			this.name = Objects.requireNonNull(name);
-			if (avgPricePerKilo < 0.0) {
-				throw new IllegalArgumentException("Invalid price per kilo");
+			Objects.requireNonNull(name);
+			if (name.isBlank()) {
+				throw new IllegalArgumentException("Empty name.");
 			}
-			if (avgCaloriesPerKilo < 0.0) {
-				throw new IllegalArgumentException("Invalid calories per kilo");
+			this.name = name;
+			if (avgPricePerKilo <= 0.0) {
+				throw new IllegalArgumentException(String.format("Invalid price per kilo: %f.", avgPricePerKilo));
 			}
-			if (carbsPercentage < 0.0 || carbsPercentage > 1.0) {
-				throw new IllegalArgumentException(String.format("Invalid carbs percentage %f", carbsPercentage));
+			if (avgCaloriesPerKilo <= 0.0) {
+				throw new IllegalArgumentException(String.format("Invalid calories per kilo: %f.", avgCaloriesPerKilo));
 			}
-			if (proteinsPercentage < 0.0 || proteinsPercentage > 1.0) {
-				throw new IllegalArgumentException(String.format("Invalid proteins percentage %f", proteinsPercentage));
+			if (carbsPercentage <= 0.0 || carbsPercentage >= 1.0) {
+				throw new IllegalArgumentException(String.format("Invalid carbs percentage %f.", carbsPercentage));
 			}
-			if (fatsPercentage < 0.0 || fatsPercentage > 1.0) {
-				throw new IllegalArgumentException(String.format("Invalid fats percentage %f", fatsPercentage));
+			if (proteinsPercentage <= 0.0 || proteinsPercentage >= 1.0) {
+				throw new IllegalArgumentException(
+						String.format("Invalid proteins percentage %f.", proteinsPercentage));
+			}
+			if (fatsPercentage <= 0.0 || fatsPercentage >= 1.0) {
+				throw new IllegalArgumentException(String.format("Invalid fats percentage %f.", fatsPercentage));
+			}
+			if (carbsPercentage + proteinsPercentage + fatsPercentage > 1.0) {
+				throw new IllegalArgumentException(String.format(
+						"Invalid percentages for %s: they add up to %.3f%%.",
+						name, (carbsPercentage + proteinsPercentage + fatsPercentage) * 100.0));
 			}
 			this.avgPricePerKilo = avgPricePerKilo;
 			this.avgCaloriesPerKilo = avgCaloriesPerKilo;
@@ -92,9 +102,16 @@ public final class Diet {
 		public Solution(final double[] quantities) {
 			Objects.requireNonNull(quantities);
 			if (quantities.length != Food.values().length) {
-				throw new IllegalArgumentException("Invalid length of food quantities");
+				throw new IllegalArgumentException("Invalid length of food quantities.");
+			}
+			for (final double q : quantities) {
+				if (q < 0.0) {
+					throw new IllegalArgumentException(String.format("Negative quantity: %f.", q));
+				}
 			}
 			System.arraycopy(quantities, 0, this.quantities, 0, Food.values().length);
+
+			// Pre-compute hashCode
 			int h = 17;
 			for (final double q : quantities) {
 				final long x = Double.doubleToLongBits(q);
@@ -118,7 +135,7 @@ public final class Diet {
 				if (quantities[i] < 1e-3) { // avoid printing quantities less than 1g
 					continue;
 				}
-				sb.append(String.format("%.3fkg of %s; ", quantities[i], Food.values()[i].name));
+				sb.append(String.format("%dg of %s; ", (int) (quantities[i] * 1_000.0), Food.values()[i].name));
 			}
 			return sb.toString();
 		}
@@ -130,11 +147,16 @@ public final class Diet {
 			if (this == other) {
 				return true;
 			}
-			if (!this.getClass().equals(other.getClass())) {
+			if (!(other instanceof Solution s)) {
 				return false;
 			}
-			return Arrays.equals(this.quantities, ((Solution) other).quantities);
+			return Arrays.equals(this.quantities, s.quantities);
 		}
+	}
+
+	private double sqdiff(final double x, final double y) {
+		final double d = Math.abs(x - y);
+		return d * d;
 	}
 
 	public Diet() {
@@ -195,33 +217,33 @@ public final class Diet {
 							}
 
 							if (calories < minCalories) {
-								score += (minCalories - calories) * (minCalories - calories);
+								score += sqdiff(calories, minCalories);
 							} else if (calories > maxCalories) {
-								score += (calories - maxCalories) * (calories - maxCalories);
+								score += sqdiff(calories, maxCalories);
 							}
 
 							final double minCarbs = calories * minCarbsPercentage;
 							final double maxCarbs = calories * maxCarbsPercentage;
 							if (carbs < minCarbs) {
-								score += (minCarbs - carbs) * (minCarbs - carbs);
+								score += sqdiff(carbs, minCarbs);
 							} else if (carbs > maxCarbs) {
-								score += (carbs - maxCarbs) * (carbs - maxCarbs);
+								score += sqdiff(carbs, maxCarbs);
 							}
 
 							final double minProteins = calories * minProteinsPercentage;
 							final double maxProteins = calories * maxProteinsPercentage;
 							if (proteins < minProteins) {
-								score += (minProteins - proteins) * (minProteins - proteins);
+								score += sqdiff(proteins, minProteins);
 							} else if (proteins > maxProteins) {
-								score += (proteins - maxProteins) * (proteins - maxProteins);
+								score += sqdiff(proteins, maxProteins);
 							}
 
 							final double minFats = calories * minFatsPercentage;
 							final double maxFats = calories * maxFatsPercentage;
 							if (fats < minFats) {
-								score += (minFats - fats) * (minFats - fats);
+								score += sqdiff(fats, minFats);
 							} else if (fats > maxFats) {
-								score += (fats - maxFats) * (fats - maxFats);
+								score += sqdiff(fats, maxFats);
 							}
 
 							return score;
