@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'pmd'
-    id 'com.github.spotbugs' version '6.1.5'
+    id 'com.github.spotbugs' version '6.1.7'
     id 'com.adarshr.test-logger' version '4.0.0'
     id 'com.diffplug.spotless' version '7.0.2'
     id 'com.github.ben-manes.versions' version '0.52.0'
@@ -55,7 +55,7 @@ allprojects {
 
     javadoc {
         failOnError = true
-        title "mal-v${version}-doc"
+        title = "mal-v${version}-doc"
         options.encoding = 'UTF-8'
         options.addBooleanOption('Werror', true)
     }
@@ -77,38 +77,38 @@ allprojects {
     }
 
     jacoco {
-        toolVersion = "0.8.12"
+        toolVersion = '0.8.12'
         reportsDirectory = layout.buildDirectory.dir('jacoco')
     }
 
     testlogger {
-        theme 'standard'
+        theme = 'standard'
 
-        showExceptions true
-        showStackTraces true
-        showFullStackTraces false
-        showCauses true
+        showExceptions = true
+        showStackTraces = true
+        showFullStackTraces = true
+        showCauses = true
 
-        slowThreshold 2000
+        slowThreshold = 2000
 
-        showSummary true
-        showSimpleNames false
-        showPassed false
-        showSkipped true
-        showFailed true
-        showOnlySlow false
+        showSummary = true
+        showSimpleNames = false
+        showPassed = false
+        showSkipped = true
+        showFailed = true
+        showOnlySlow = false
 
-        showStandardStreams true
-        showPassedStandardStreams true
-        showSkippedStandardStreams true
-        showFailedStandardStreams true
+        showStandardStreams = true
+        showPassedStandardStreams = true
+        showSkippedStandardStreams = true
+        showFailedStandardStreams = true
 
-        logLevel 'lifecycle'
+        logLevel = 'lifecycle'
     }
 
     pmd {
         consoleOutput = true
-        toolVersion = "7.2.0"
+        toolVersion = '7.11.0'
         rulesMinimumPriority = 5
         threads = 1
         incrementalAnalysis = true
@@ -116,7 +116,7 @@ allprojects {
     }
 
     spotbugs {
-        toolVersion = '4.9.1'
+        toolVersion = '4.9.2'
 
         ignoreFailures = false
         showStackTraces = true
@@ -148,7 +148,7 @@ spotless {
         }
         setEncoding('utf-8')
         removeUnusedImports()
-        palantirJavaFormat('2.52.0').formatJavadoc(true)
+        palantirJavaFormat('2.55.0').formatJavadoc(true)
         leadingSpacesToTabs()
         formatAnnotations()
         trimTrailingWhitespace()
