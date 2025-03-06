@@ -22,9 +22,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
@@ -249,9 +246,8 @@ public final class Diet {
 							return score;
 						});
 
-		final ExecutorService ex =
-				Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		final GeneticAlgorithm<Solution> ga = new ParallelGeneticAlgorithm<>(ex, rng);
+		final GeneticAlgorithm<Solution> ga =
+				new ParallelGeneticAlgorithm<>(Runtime.getRuntime().availableProcessors());
 		Set<Solution> g = new HashSet<>();
 		final Set<Solution> allSolutions = new HashSet<>();
 
@@ -284,17 +280,5 @@ public final class Diet {
 
 		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
 		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
-
-		if (!ex.isShutdown()) {
-			ex.shutdown();
-		}
-		while (!ex.isTerminated()) {
-			try {
-				if (ex.awaitTermination(1, TimeUnit.SECONDS)) {
-					break;
-				}
-			} catch (final InterruptedException ignored) {
-			}
-		}
 	}
 }

@@ -17,9 +17,6 @@
 */
 package com.ledmington.mal.examples.genetic;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
@@ -180,9 +177,8 @@ public final class NeuralNetwork {
 			}
 		}
 
-		final ExecutorService ex =
-				Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		final GeneticAlgorithm<Network> ga = new ParallelGeneticAlgorithm<>(ex, rng);
+		final GeneticAlgorithm<Network> ga =
+				new ParallelGeneticAlgorithm<>(Runtime.getRuntime().availableProcessors());
 
 		ga.setState(GeneticAlgorithmConfig.<Network>builder()
 				.populationSize(1_000)
@@ -251,17 +247,5 @@ public final class NeuralNetwork {
 				})
 				.build());
 		ga.run();
-
-		if (!ex.isShutdown()) {
-			ex.shutdown();
-		}
-		while (!ex.isTerminated()) {
-			try {
-				if (ex.awaitTermination(1, TimeUnit.SECONDS)) {
-					break;
-				}
-			} catch (final InterruptedException ignored) {
-			}
-		}
 	}
 }

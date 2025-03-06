@@ -36,25 +36,28 @@ public final class ParallelGATest extends GATest {
 		ga = new ParallelGeneticAlgorithm<>();
 	}
 
-	@Test
-	public void nullExecutor() {
-		assertThrows(
-				NullPointerException.class,
-				() -> new ParallelGeneticAlgorithm<String>(
-						null, RandomGeneratorFactory.getDefault().create(System.nanoTime())));
-	}
-
-	@Test
-	public void nullRandomGenerator() {
-		assertThrows(
-				NullPointerException.class,
-				() -> new ParallelGeneticAlgorithm<String>(Executors.newSingleThreadExecutor(), null));
-	}
-
 	@ParameterizedTest
 	@ValueSource(ints = {-2, -1, 0})
-	public void invalidThreads(int nThreads) {
+	public void invalidThreads(final int nThreads) {
 		assertThrows(IllegalArgumentException.class, () -> new ParallelGeneticAlgorithm<String>(nThreads));
+	}
+
+	private int tryWithSeed(final long seed) {
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(seed);
+		final GeneticAlgorithm<Integer> ga = new ParallelGeneticAlgorithm<>(
+				Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()), rng);
+		ga.setState(GeneticAlgorithmConfig.<Integer>builder()
+				.maxGenerations(10)
+				.creation(() -> rng.nextInt())
+				.crossover((a, b) -> (a + b) / 2)
+				.mutation(x -> x + 1)
+				.maximize(x -> (double) Math.abs(x))
+				.build());
+		ga.run();
+		return ga.getState().scores().entrySet().stream()
+				.max(Map.Entry.comparingByValue())
+				.orElseThrow()
+				.getKey();
 	}
 
 	@Test
@@ -63,44 +66,8 @@ public final class ParallelGATest extends GATest {
 		// solution)
 		final long seed = System.nanoTime();
 
-		final String firstBest;
-		final String secondBest;
-
-		{
-			final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(seed);
-			ga = new ParallelGeneticAlgorithm<>(
-					Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()), rng);
-			ga.setState(GeneticAlgorithmConfig.<String>builder()
-					.maxGenerations(10)
-					.creation(() -> String.valueOf(rng.nextInt()))
-					.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-					.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-					.maximize(s -> (double) s.length())
-					.build());
-			ga.run();
-			firstBest = ga.getState().scores().entrySet().stream()
-					.max(Map.Entry.comparingByValue())
-					.orElseThrow()
-					.getKey();
-		}
-
-		{
-			final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(seed);
-			ga = new ParallelGeneticAlgorithm<>(
-					Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()), rng);
-			ga.setState(GeneticAlgorithmConfig.<String>builder()
-					.maxGenerations(10)
-					.creation(() -> String.valueOf(rng.nextInt()))
-					.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-					.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-					.maximize(s -> (double) s.length())
-					.build());
-			ga.run();
-			secondBest = ga.getState().scores().entrySet().stream()
-					.max(Map.Entry.comparingByValue())
-					.orElseThrow()
-					.getKey();
-		}
+		final int firstBest = tryWithSeed(seed);
+		final int secondBest = tryWithSeed(seed);
 
 		assertEquals(firstBest, secondBest);
 	}

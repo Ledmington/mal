@@ -28,14 +28,20 @@ public final class SimulatedAnnealing<X> {
 	private static final RandomGenerator rng =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
+	private final int maxIterations;
 	private final Supplier<X> randomSolution;
 	private final Function<X, X> generateRandomNeighbor;
 	private final Function<X, Double> fitness;
 
 	public SimulatedAnnealing(
+			final int maxIterations,
 			final Supplier<X> randomSolution,
 			final Function<X, X> generateRandomNeighbor,
 			final Function<X, Double> fitness) {
+		if (maxIterations <= 0) {
+			throw new IllegalArgumentException(String.format("Invalid max iterations: %,d.", maxIterations));
+		}
+		this.maxIterations = maxIterations;
 		this.randomSolution = Objects.requireNonNull(randomSolution);
 		this.generateRandomNeighbor = Objects.requireNonNull(generateRandomNeighbor);
 		this.fitness = Objects.requireNonNull(fitness);
@@ -53,8 +59,6 @@ public final class SimulatedAnnealing<X> {
 	}
 
 	public void run() {
-		final int maxIterations = 10_000;
-
 		X current = randomSolution.get();
 		X next;
 		double currentEnergy = fitness.apply(current);
@@ -62,16 +66,17 @@ public final class SimulatedAnnealing<X> {
 
 		for (int k = 0; k < maxIterations; k++) {
 			final double temperature = 1.0 - ((double) (k + 1) / (double) maxIterations);
-			System.out.printf("Iteration %,d of %,d (t = %.6e)%n", k, maxIterations, temperature);
-			System.out.printf("  Best solution : '%s'%n", current);
-			System.out.printf("  Best score : %+.6f%n", currentEnergy);
-			System.out.println();
 
 			next = generateRandomNeighbor.apply(current);
 			nextEnergy = fitness.apply(next);
 			if (acceptance(currentEnergy, nextEnergy, temperature) <= rng.nextDouble(0.0, 1.0)) {
 				current = next;
 				currentEnergy = nextEnergy;
+
+				System.out.printf("Iteration %,d of %,d (t = %.6e)%n", k, maxIterations, temperature);
+				System.out.printf("  Best solution : '%s'%n", current);
+				System.out.printf("  Best score : %+.6f%n", currentEnergy);
+				System.out.println();
 			}
 		}
 	}

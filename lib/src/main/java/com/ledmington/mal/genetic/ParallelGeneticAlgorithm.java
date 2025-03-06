@@ -48,7 +48,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 				RandomGeneratorFactory.getDefault().create(System.nanoTime()));
 	}
 
-	public ParallelGeneticAlgorithm(int nThreads) {
+	public ParallelGeneticAlgorithm(final int nThreads) {
 		this(
 				Executors.newFixedThreadPool(nThreads),
 				RandomGeneratorFactory.getDefault().create(System.nanoTime()));

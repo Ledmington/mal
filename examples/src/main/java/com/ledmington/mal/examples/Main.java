@@ -41,7 +41,7 @@ public final class Main {
 					"diet",
 					Diet::new),
 			"simulated_annealing",
-			Map.of("random_strings", com.ledmington.mal.examples.annealing.RandomStrings::new),
+			Map.of("rosenbrock", com.ledmington.mal.examples.annealing.Rosenbrock::new),
 			"pattern_search",
 			Map.of(
 					"random_strings",

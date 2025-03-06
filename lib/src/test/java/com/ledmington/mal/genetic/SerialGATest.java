@@ -38,44 +38,31 @@ public final class SerialGATest extends GATest {
 		assertThrows(NullPointerException.class, () -> new SerialGeneticAlgorithm<>(null));
 	}
 
+	private String tryWithSeed(final long seed) {
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(seed);
+		ga = new SerialGeneticAlgorithm<>(rng);
+		ga.setState(GeneticAlgorithmConfig.<String>builder()
+				.maxGenerations(10)
+				.creation(() -> String.valueOf(rng.nextInt()))
+				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
+				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
+				.maximize(s -> (double) s.length())
+				.build());
+		ga.run();
+		return ga.getState().scores().entrySet().stream()
+				.max(Map.Entry.comparingByValue())
+				.orElseThrow()
+				.getKey();
+	}
+
 	@Test
 	public void determinism() {
 		// two algorithms with the same config and the same RandomGenerator must return the same result (the best
 		// solution)
 		final long seed = System.nanoTime();
-		RandomGenerator rng;
 
-		rng = RandomGeneratorFactory.getDefault().create(seed);
-		final RandomGenerator finalRNG1 = rng;
-		ga = new SerialGeneticAlgorithm<>(rng);
-		ga.setState(GeneticAlgorithmConfig.<String>builder()
-				.maxGenerations(10)
-				.creation(() -> String.valueOf(finalRNG1.nextInt()))
-				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-				.maximize(s -> (double) s.length())
-				.build());
-		ga.run();
-		final String firstBest = ga.getState().scores().entrySet().stream()
-				.max(Map.Entry.comparingByValue())
-				.orElseThrow()
-				.getKey();
-
-		rng = RandomGeneratorFactory.getDefault().create(seed);
-		final RandomGenerator finalRNG2 = rng;
-		ga = new SerialGeneticAlgorithm<>(rng);
-		ga.setState(GeneticAlgorithmConfig.<String>builder()
-				.maxGenerations(10)
-				.creation(() -> String.valueOf(finalRNG2.nextInt()))
-				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-				.maximize(s -> (double) s.length())
-				.build());
-		ga.run();
-		final String secondBest = ga.getState().scores().entrySet().stream()
-				.max(Map.Entry.comparingByValue())
-				.orElseThrow()
-				.getKey();
+		final String firstBest = tryWithSeed(seed);
+		final String secondBest = tryWithSeed(seed);
 
 		assertEquals(firstBest, secondBest);
 	}

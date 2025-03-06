@@ -32,7 +32,7 @@ public final class RandomStrings {
 		final String alphabet =
 				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-_@#[]{}()!?='\"+*/";
 		final String targetString =
-				"This library for Minimization Algorithms is absolutely fantastic! I cannot wait to try and use it with Java 21 and Gradle 8.11! Now let's write another time just to have longer strings and, therefore, add artificial complexity to the problem.";
+				"This library for Minimization Algorithms is absolutely fantastic! I cannot wait to try it! Now let's write another time just to have longer strings and, therefore, add artificial complexity to the problem.";
 		final int targetLength = targetString.length();
 		final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 
