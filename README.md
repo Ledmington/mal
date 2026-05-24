@@ -6,16 +6,17 @@
 - A Parallel implementation for high performance
 
 ## Algorithms
-| Algorithm           | Serial? | Parallel? |
-|---------------------|---------|-----------|
-| Genetic             | ✔       | ✔         |
-| Simulated Annealing | ✔       |           |
-| Pattern Search      | ✔       | ✔         |
-| Swarm Search        |         |           |
-| BFGS                |         |           |
-| L-BFGS              |         |           |
-| Nelder-Mead         |         |           |
-| Grid                |         |           |
+| Algorithm              | Serial | Parallel |
+|------------------------|--------|----------|
+| Genetic                | ✔      | ✔        |
+| Simulated Annealing    | ✔      |          |
+| Pattern Search         | ✔      | ✔        |
+| Swarm Search           |        |          |
+| BFGS                   |        |          |
+| L-BFGS                 |        |          |
+| Nelder-Mead            |        |          |
+| Grid                   |        |          |
+| Differential Evolution |        |          |
 
 ## How to contribute
 ```bash
