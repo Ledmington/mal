@@ -19,7 +19,7 @@ String appDescription = 'A collection of minimization algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
 
-ext.junitVersion = '5.12.0'
+ext.junitVersion = '6.1.0'
 
 allprojects {
     apply plugin: 'java'
