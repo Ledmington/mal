@@ -64,7 +64,7 @@ public final class Tsp {
 			cachedHashCode = h;
 		}
 
-		public int[] array() {
+		public int[] getArray() {
 			return array;
 		}
 
@@ -185,7 +185,7 @@ public final class Tsp {
 						})
 						.mutation(x -> {
 							final int[] y = new int[nCities];
-							System.arraycopy(x.array(), 0, y, 0, nCities);
+							System.arraycopy(x.getArray(), 0, y, 0, nCities);
 							final int i = rng.nextInt(0, nCities);
 							y[i] = rng.nextInt(0, nCities);
 							return new Solution(y);
@@ -199,7 +199,7 @@ public final class Tsp {
 									visitedCities++;
 								}
 								visited[x.get(i)] = true;
-								s += distances[x.array()[i]][x.array()[(i + 1) % nCities]];
+								s += distances[x.getArray()[i]][x.getArray()[(i + 1) % nCities]];
 							}
 							if (visitedCities < nCities) {
 								// This solution has not visited all cities, so this solution is not valid: we

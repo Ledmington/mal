@@ -75,7 +75,8 @@ public class SerialPatternSearch<X> implements PatternSearch<X> {
 		}
 		this.k = k;
 		this.startingPoint = Objects.requireNonNull(startingPoint);
-		if (d < 1) {
+		final int minimumDimensions = 1;
+		if (d < minimumDimensions) {
 			throw new IllegalArgumentException("d must be >=1.");
 		}
 		this.d = d;

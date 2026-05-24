@@ -20,6 +20,7 @@ package com.ledmington.mal.patternsearch;
 import java.util.Objects;
 import java.util.function.Function;
 
+@SuppressWarnings("PMD.AvoidFieldNameMatchingMethodName")
 public final class PatternSearchBuilder<X> {
 
 	private double step = 1.0;

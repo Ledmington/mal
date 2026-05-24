@@ -17,6 +17,7 @@
  */
 package com.ledmington.mal.examples.genetic;
 
+import java.util.Arrays;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
@@ -143,6 +144,22 @@ public final class NeuralNetwork {
 			cachedHashCode = h;
 			isHashCodeSet = true;
 			return cachedHashCode;
+		}
+
+		public boolean equals(final Object other) {
+			if (other == null) {
+				return false;
+			}
+			if (this == other) {
+				return true;
+			}
+			if (!(other instanceof Network n)) {
+				return false;
+			}
+			return Arrays.deepEquals(this.w1, n.w1)
+					&& Arrays.equals(this.b1, n.b1)
+					&& Arrays.deepEquals(this.w2, n.w2)
+					&& Arrays.equals(this.b2, n.b2);
 		}
 	}
 

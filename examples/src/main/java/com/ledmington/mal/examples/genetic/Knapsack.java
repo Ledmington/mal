@@ -34,6 +34,7 @@ import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 public final class Knapsack {
 
 	private static final class Solution {
+
 		private final boolean[] array;
 		private final int cachedHashCode;
 
@@ -50,7 +51,7 @@ public final class Knapsack {
 			return array[i];
 		}
 
-		public boolean[] array() {
+		public boolean[] getArray() {
 			return array;
 		}
 
@@ -148,7 +149,7 @@ public final class Knapsack {
 						})
 						.mutation(x -> {
 							final boolean[] v = new boolean[nItems];
-							System.arraycopy(x.array(), 0, v, 0, nItems);
+							System.arraycopy(x.getArray(), 0, v, 0, nItems);
 							final int idx = rng.nextInt(0, nItems);
 							v[idx] = !v[idx];
 							return new Solution(v);

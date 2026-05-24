@@ -136,6 +136,7 @@ public abstract class GATest {
 	}
 
 	@Test
+	@SuppressWarnings("PMD.CloseResource")
 	public void ifQuietShouldPrintNothing() {
 		final PrintStream oldStdout = System.out;
 		System.setOut(new PrintStream(

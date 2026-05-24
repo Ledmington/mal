@@ -45,7 +45,8 @@ public record GeneticAlgorithmConfig<X>(
 	}
 
 	private static int assertPopulationSizeIsValid(int pop) {
-		if (pop < 2) {
+		final int minimumPopulation = 2;
+		if (pop < minimumPopulation) {
 			throw new IllegalArgumentException(
 					String.format("Invalid population size: needs to be >= 2 but was %,d", pop));
 		}
@@ -92,6 +93,7 @@ public record GeneticAlgorithmConfig<X>(
 		return rate;
 	}
 
+	@SuppressWarnings("PMD.AvoidFieldNameMatchingMethodName")
 	public static final class GeneticAlgorithmConfigBuilder<X> {
 
 		private boolean alreadyBuilt = false;

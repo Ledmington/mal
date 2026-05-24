@@ -49,6 +49,7 @@ public final class Diet {
 		private final double avgProteinsPerKilo;
 		private final double avgFatsPerKilo;
 
+		@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 		Food(
 				final String name,
 				final double avgPricePerKilo,
@@ -90,6 +91,7 @@ public final class Diet {
 		}
 	}
 
+	@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 	private static final class Solution {
 
 		// These represent kilograms of each food
