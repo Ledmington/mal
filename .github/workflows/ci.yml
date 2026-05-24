@@ -1,4 +1,4 @@
-name: MAL test
+name: Build
 
 on:
   push:
@@ -24,7 +24,9 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
-    
-    - name: gradle test
-      run: ./gradlew --no-daemon --console=plain test
 
+    - name: Format check
+      run: ./gradlew --console=plain --no-daemon spotlessCheck
+
+    - name: Build
+      run: ./gradlew --console=plain --no-daemon build
