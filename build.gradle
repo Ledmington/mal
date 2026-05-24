@@ -6,7 +6,7 @@ plugins {
     id 'com.adarshr.test-logger' version '4.0.0'
     id 'com.diffplug.spotless' version '7.0.4'
     id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'de.undercouch.download' version '5.6.0'
+    id 'de.undercouch.download' version '5.7.0'
 }
 
 static def path(String... args) {
@@ -19,7 +19,6 @@ String version = '0.1.0'
 String appDescription = 'A collection of minimization algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
-String appName = 'parser-gen'
 ext.appNameLowerCase = appName.toLowerCase(Locale.US)
 
 ext.junitVersion = '6.1.0'
