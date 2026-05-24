@@ -4,8 +4,9 @@ plugins {
     id 'pmd'
     id 'com.github.spotbugs' version '6.1.7'
     id 'com.adarshr.test-logger' version '4.0.0'
-    id 'com.diffplug.spotless' version '8.5.1'
+    id 'com.diffplug.spotless' version '7.0.4'
     id 'com.github.ben-manes.versions' version '0.52.0'
+    id 'de.undercouch.download' version '5.6.0'
 }
 
 static def path(String... args) {
@@ -18,8 +19,15 @@ String version = '0.1.0'
 String appDescription = 'A collection of minimization algorithms.'
 String author = 'Filippo Barbari'
 String authorMail = 'filippo.barbari@gmail.com'
+String appName = 'parser-gen'
+ext.appNameLowerCase = appName.toLowerCase(Locale.US)
 
 ext.junitVersion = '6.1.0'
+ext.junitLauncherVersion = '6.1.0'
+ext.jacocoVersion = '0.8.14'
+ext.pmdVersion = '7.13.0'
+ext.palantirVersion = '2.82.0'
+// End tunables
 
 allprojects {
     apply plugin: 'java'
@@ -40,9 +48,10 @@ allprojects {
     }
 
     dependencies {
-        testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-        testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion" // parameterized tests
-        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitLauncherVersion}"
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -77,50 +86,43 @@ allprojects {
     }
 
     jacoco {
-        toolVersion = '0.8.12'
+        toolVersion = "${jacocoVersion}"
         reportsDirectory = layout.buildDirectory.dir('jacoco')
     }
 
     testlogger {
-        theme = 'standard'
+        theme = 'standard-parallel'
 
         showExceptions = true
         showStackTraces = true
-        showFullStackTraces = true
+        showFullStackTraces = false
         showCauses = true
 
         slowThreshold = 2000
 
         showSummary = true
         showSimpleNames = false
-        showPassed = false
+        showPassed = false // enable for verbose tests
         showSkipped = true
         showFailed = true
         showOnlySlow = false
 
         showStandardStreams = true
-        showPassedStandardStreams = true
+        showPassedStandardStreams = false
         showSkippedStandardStreams = true
         showFailedStandardStreams = true
 
         logLevel = 'lifecycle'
     }
 
+    // Common config for all PMD tasks
     pmd {
-        consoleOutput = true
-        toolVersion = '7.11.0'
-        rulesMinimumPriority = 5
-        threads = 1
-        incrementalAnalysis = true
-        ruleSetConfig = resources.text.fromFile(path("${project.rootDir}", "ruleset.xml"))
-    }
-
-    spotbugs {
-        toolVersion = '4.9.2'
-
+        toolVersion = "${pmdVersion}"
         ignoreFailures = false
-        showStackTraces = true
-        showProgress = false // too verbose for parallel output
+        consoleOutput = true
+        rulesMinimumPriority = 5
+        threads = 1 // Each PMD instance for each module runs serially
+        incrementalAnalysis = true
     }
 
     // cleanup tasks
@@ -143,38 +145,41 @@ spotless {
 
     java {
         target fileTree('.') {
-            include path('**', '*.java')
-            exclude path('**', 'build', '**'), path('**', 'build-*', '**'), path('**', 'bin', '**')
+            include path('lib', '**', '*.java')
+            include path('examples', '**', '*.java')
+            exclude path('**', 'build', '**')
+            exclude path('**', 'build-*', '**')
+            exclude path('**', 'bin', '**')
         }
         setEncoding('utf-8')
         removeUnusedImports()
-        palantirJavaFormat('2.55.0').formatJavadoc(true)
+        palantirJavaFormat("${palantirVersion}").formatJavadoc(true)
         leadingSpacesToTabs()
         formatAnnotations()
         trimTrailingWhitespace()
         endWithNewline()
 
         // check https://javadoc.io/doc/com.diffplug.spotless/spotless-plugin-gradle/latest/com/diffplug/gradle/spotless/JavaExtension.html
-        importOrder('java', 'javax', 'javafx', 'org.junit', 'com', 'com.ledmington', 'org', group as String)
+        importOrder('java', 'javax', 'javafx', 'org.junit', 'org.openjdk', 'com', 'com.ledmington', 'org', group as String)
 
         licenseHeader String.join("\n",
                 "/*",
-                "* ${appName} - ${appDescription}",
-                "* Copyright (C) 2023-${new Date().format('yyyy')} ${author} <${authorMail}>",
-                "*",
-                "* This program is free software: you can redistribute it and/or modify",
-                "* it under the terms of the GNU General Public License as published by",
-                "* the Free Software Foundation, either version 3 of the License, or",
-                "* (at your option) any later version.",
-                "*",
-                "* This program is distributed in the hope that it will be useful,",
-                "* but WITHOUT ANY WARRANTY; without even the implied warranty of",
-                "* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
-                "* GNU General Public License for more details.",
-                "*",
-                "* You should have received a copy of the GNU General Public License",
-                "* along with this program.  If not, see <http://www.gnu.org/licenses/>.",
-                "*/",
+                " * ${appName} - ${appDescription}",
+                " * Copyright (C) 2023-${new Date().format('yyyy')} ${author} <${authorMail}>",
+                " *",
+                " * This program is free software: you can redistribute it and/or modify",
+                " * it under the terms of the GNU General Public License as published by",
+                " * the Free Software Foundation, either version 3 of the License, or",
+                " * (at your option) any later version.",
+                " *",
+                " * This program is distributed in the hope that it will be useful,",
+                " * but WITHOUT ANY WARRANTY; without even the implied warranty of",
+                " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+                " * GNU General Public License for more details.",
+                " *",
+                " * You should have received a copy of the GNU General Public License",
+                " * along with this program.  If not, see <https://www.gnu.org/licenses/>.",
+                " */",
         )
     }
 }
