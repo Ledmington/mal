@@ -124,6 +124,18 @@ allprojects {
         incrementalAnalysis = true
     }
 
+    // Config for production code
+    pmdMain {
+        ruleSetConfig = resources.text.fromFile(path("${project.rootDir}", "prod.ruleset.xml"))
+        ruleSets = [] // avoid using default configuration
+    }
+
+    // Config for testing code
+    pmdTest {
+        ruleSetConfig = resources.text.fromFile(path("${project.rootDir}", "test.ruleset.xml"))
+        ruleSets = [] // avoid using default configuration
+    }
+
     // cleanup tasks
     clean.dependsOn('cleanBin')
 
