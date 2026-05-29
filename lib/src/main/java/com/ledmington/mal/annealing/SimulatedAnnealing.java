@@ -25,7 +25,7 @@ import java.util.random.RandomGeneratorFactory;
 
 public final class SimulatedAnnealing<X> {
 
-	private static final RandomGenerator rng =
+	private static final RandomGenerator RNG =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
 	private final int maxIterations;
@@ -69,14 +69,9 @@ public final class SimulatedAnnealing<X> {
 
 			next = generateRandomNeighbor.apply(current);
 			nextEnergy = fitness.apply(next);
-			if (acceptance(currentEnergy, nextEnergy, temperature) <= rng.nextDouble(0.0, 1.0)) {
+			if (acceptance(currentEnergy, nextEnergy, temperature) <= RNG.nextDouble(0.0, 1.0)) {
 				current = next;
 				currentEnergy = nextEnergy;
-
-				System.out.printf("Iteration %,d of %,d (t = %.6e)%n", k, maxIterations, temperature);
-				System.out.printf("  Best solution : '%s'%n", current);
-				System.out.printf("  Best score : %+.6f%n", currentEnergy);
-				System.out.println();
 			}
 		}
 	}

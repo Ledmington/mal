@@ -31,6 +31,7 @@ import com.ledmington.mal.genetic.GeneticAlgorithm;
 import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
 import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class Diet {
 
 	private enum Food {
@@ -124,10 +125,12 @@ public final class Diet {
 			return quantities[index];
 		}
 
+		@Override
 		public int hashCode() {
 			return cachedHashCode;
 		}
 
+		@Override
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < quantities.length; i++) {
@@ -139,6 +142,7 @@ public final class Diet {
 			return sb.toString();
 		}
 
+		@Override
 		public boolean equals(final Object other) {
 			if (other == null) {
 				return false;

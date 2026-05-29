@@ -35,50 +35,50 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public final class TestUtils {
+final class TestUtils {
 
-	private static final RandomGenerator rng =
+	private static final RandomGenerator RNG =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
 	public static Stream<Arguments> inputs() {
 		return Stream.of(
 				Arguments.of(List.of(1, 2, 3), Function.identity(), null),
-				Arguments.of(List.of(1, 2, 3), null, rng),
-				Arguments.of(null, Function.identity(), rng));
+				Arguments.of(List.of(1, 2, 3), null, RNG),
+				Arguments.of(null, Function.identity(), RNG));
 	}
 
 	@ParameterizedTest
 	@MethodSource("inputs")
-	public void nullChecks(final List<Integer> v, final Function<Integer, Double> w, final RandomGenerator r) {
+	void nullChecks(final List<Integer> v, final Function<Integer, Double> w, final RandomGenerator r) {
 		assertThrows(NullPointerException.class, () -> Utils.weightedChoose(v, w, r));
 	}
 
 	@Test
-	public void weightedChooseCanChooseFirst() {
+	void weightedChooseCanChooseFirst() {
 		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		final Function<Integer, Double> w = x -> 9.1 - x;
 
 		assertTrue(IntStream.range(0, 100)
-				.map(x -> Utils.weightedChoose(values, w, rng).get())
+				.map(x -> Utils.weightedChoose(values, w, RNG).get())
 				.filter(x -> values.getFirst().equals(x))
 				.findAny()
 				.isPresent());
 	}
 
 	@Test
-	public void weightedChooseCanChooseLast() {
+	void weightedChooseCanChooseLast() {
 		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		final Function<Integer, Double> w = x -> (double) x;
 
 		assertTrue(IntStream.range(0, 100)
-				.map(x -> Utils.weightedChoose(values, w, rng).get())
+				.map(x -> Utils.weightedChoose(values, w, RNG).get())
 				.filter(x -> values.getLast().equals(x))
 				.findAny()
 				.isPresent());
 	}
 
 	@Test
-	public void weightsWork() {
+	void weightsWork() {
 		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		final Function<Integer, Double> w = x -> (double) x;
 		final Map<Integer, Integer> count = new HashMap<>();
@@ -87,7 +87,7 @@ public final class TestUtils {
 		}
 
 		for (int i = 0; i < 10_000; i++) {
-			final Integer chosen = Utils.weightedChoose(values, w, rng).get();
+			final Integer chosen = Utils.weightedChoose(values, w, RNG).get();
 			count.put(chosen, count.get(chosen) + 1);
 		}
 
@@ -106,21 +106,21 @@ public final class TestUtils {
 	}
 
 	@Test
-	public void negativeWeightsDoNotWork() {
+	void negativeWeightsDoNotWork() {
 		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		final Function<Integer, Double> w = x -> -(double) x;
 
-		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(values, w, rng));
+		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(values, w, RNG));
 	}
 
 	@Test
-	public void weightedChooseWithOneValue() {
+	void weightedChooseWithOneValue() {
 		assertEquals(
-				123, Utils.weightedChoose(List.of(123), x -> (double) x, rng).get());
+				123, Utils.weightedChoose(List.of(123), x -> (double) x, RNG).get());
 	}
 
 	@Test
-	public void weightedChooseWithNoValues() {
-		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(List.of(), x -> (double) x, rng));
+	void weightedChooseWithNoValues() {
+		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(List.of(), x -> (double) x, RNG));
 	}
 }

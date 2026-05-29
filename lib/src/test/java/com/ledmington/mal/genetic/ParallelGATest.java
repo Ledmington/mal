@@ -30,16 +30,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public final class ParallelGATest extends GATest {
+final class ParallelGATest extends GATest {
+
 	@BeforeEach
+	@Override
 	public void setup() {
 		ga = new ParallelGeneticAlgorithm<>();
 	}
 
 	@ParameterizedTest
 	@ValueSource(ints = {-2, -1, 0})
-	public void invalidThreads(final int nThreads) {
-		assertThrows(IllegalArgumentException.class, () -> new ParallelGeneticAlgorithm<String>(nThreads));
+	void invalidThreads(final int nThreads) {
+		assertThrows(IllegalArgumentException.class, () -> new ParallelGeneticAlgorithm<>(nThreads));
 	}
 
 	private int tryWithSeed(final long seed) {
@@ -48,7 +50,7 @@ public final class ParallelGATest extends GATest {
 				Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()), rng);
 		ga.setState(GeneticAlgorithmConfig.<Integer>builder()
 				.maxGenerations(10)
-				.creation(() -> rng.nextInt())
+				.creation(rng::nextInt)
 				.crossover((a, b) -> (a + b) / 2)
 				.mutation(x -> x + 1)
 				.maximize(x -> (double) Math.abs(x))
@@ -61,14 +63,19 @@ public final class ParallelGATest extends GATest {
 	}
 
 	@Test
-	public void determinism() {
-		// two algorithms with the same config and the same RandomGenerator must return the same result (the best
+	void determinism() {
+		// Two algorithms with the same config and the same RandomGenerator must return the same result (the best
 		// solution)
 		final long seed = System.nanoTime();
 
 		final int firstBest = tryWithSeed(seed);
 		final int secondBest = tryWithSeed(seed);
 
-		assertEquals(firstBest, secondBest);
+		assertEquals(
+				firstBest,
+				secondBest,
+				() -> String.format(
+						"Running the Parallel Genetic Algorithm twice with the same seed (0x%016) was expected to give the same result but in the first run the best result was the %d-th while in the second was the %d-th.",
+						seed, firstBest, secondBest));
 	}
 }

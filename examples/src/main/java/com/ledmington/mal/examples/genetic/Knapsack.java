@@ -31,6 +31,7 @@ import com.ledmington.mal.genetic.GeneticAlgorithm;
 import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
 import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class Knapsack {
 
 	private static final class Solution {
@@ -38,7 +39,8 @@ public final class Knapsack {
 		private final boolean[] array;
 		private final int cachedHashCode;
 
-		public Solution(final boolean[] array) {
+		@SuppressWarnings("PMD.ArrayIsStoredDirectly")
+		/* default */ Solution(final boolean... array) {
 			this.array = array;
 			int h = 17;
 			for (final boolean b : array) {
@@ -55,10 +57,12 @@ public final class Knapsack {
 			return array;
 		}
 
+		@Override
 		public int hashCode() {
 			return cachedHashCode;
 		}
 
+		@Override
 		public boolean equals(final Object other) {
 			if (other == null) {
 				return false;
@@ -81,6 +85,7 @@ public final class Knapsack {
 			return true;
 		}
 
+		@Override
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			sb.append('[');

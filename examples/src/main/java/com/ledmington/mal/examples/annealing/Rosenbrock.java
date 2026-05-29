@@ -23,13 +23,15 @@ import java.util.stream.IntStream;
 
 import com.ledmington.mal.annealing.SimulatedAnnealing;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class Rosenbrock {
 
 	private static final class Solution {
 
 		private final double[] x;
 
-		Solution(final double[] x) {
+		@SuppressWarnings("PMD.ArrayIsStoredDirectly")
+		/* default */ Solution(final double... x) {
 			this.x = x;
 		}
 

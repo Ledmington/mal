@@ -45,7 +45,7 @@ public abstract class GATest {
 	public abstract void setup();
 
 	// A Supplier that counts the number of times it has been invoked
-	static class CountingSupplier implements Supplier<String> {
+	/* default */ static class CountingSupplier implements Supplier<String> {
 
 		private int count = 0;
 
@@ -61,11 +61,14 @@ public abstract class GATest {
 	}
 
 	// A Mutator that counts the number of times it has been invoked
-	static class CountingMutator implements Function<String, String> {
+	/* default */ static class CountingMutator implements Function<String, String> {
 		private int count = 0;
 
-		public synchronized String apply(final String in) {
-			count++;
+		@Override
+		public String apply(final String in) {
+			synchronized (this) {
+				count++;
+			}
 			return in;
 		}
 
@@ -75,7 +78,7 @@ public abstract class GATest {
 	}
 
 	// A Crossover operator that counts the number of times it has been invoked
-	static class CountingCrossoverOperator implements BiFunction<String, String, String> {
+	/* default */ static class CountingCrossoverOperator implements BiFunction<String, String, String> {
 		private int count = 0;
 
 		public synchronized String apply(final String first, final String second) {
@@ -90,7 +93,7 @@ public abstract class GATest {
 
 	@ParameterizedTest
 	@ValueSource(ints = {10, 20, 30, 40, 50, 60, 70, 80, 90})
-	public void zeroGenerationsMeansOnlyCreation(final int populationSize) {
+	void zeroGenerationsMeansOnlyCreation(final int populationSize) {
 		final CountingSupplier cs = new CountingSupplier();
 		ga.setState(GeneticAlgorithmConfig.<String>builder()
 				.populationSize(populationSize)
@@ -106,7 +109,7 @@ public abstract class GATest {
 
 	@ParameterizedTest
 	@ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
-	public void zeroRatesMeansAlwaysRandomCreations(final int generations) {
+	void zeroRatesMeansAlwaysRandomCreations(final int generations) {
 		/*
 		The survival rate, the mutation rate and the crossover rate cannot be technically zero,
 		but we can give 1e-6 so that less than one individual will survive,
@@ -137,10 +140,11 @@ public abstract class GATest {
 
 	@Test
 	@SuppressWarnings("PMD.CloseResource")
-	public void ifQuietShouldPrintNothing() {
+	void ifQuietShouldPrintNothing() {
 		final PrintStream oldStdout = System.out;
 		System.setOut(new PrintStream(
 				new OutputStream() {
+					@Override
 					public void write(int b) {
 						// reset the old stdout object to avoid bad stuff
 						System.setOut(oldStdout);
@@ -164,7 +168,7 @@ public abstract class GATest {
 
 	@ParameterizedTest
 	@ValueSource(ints = {0, 1, 2, 5, 10, 20, 30, 40, 50})
-	public void maxGenerations(int generations) {
+	void maxGenerations(final int generations) {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 		final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
 				.maxGenerations(generations)
@@ -181,7 +185,7 @@ public abstract class GATest {
 
 	@ParameterizedTest
 	@ValueSource(ints = {0, 9, 99, 999, 9_999, 99_999, 999_999})
-	public void stopCriterion(int limit) {
+	void stopCriterion(final int limit) {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 		final GeneticAlgorithmConfigBuilder<String> gacb = GeneticAlgorithmConfig.<String>builder()
 				.stopCriterion(s -> Integer.parseInt(s) >= limit)

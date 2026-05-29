@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public final class GAConfigTest {
+final class GAConfigTest {
 
 	private GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<String> b;
 
@@ -37,72 +37,72 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void cannotBuildWithNoParameters() {
+	void cannotBuildWithNoParameters() {
 		assertThrows(Exception.class, () -> b.build());
 	}
 
 	@ParameterizedTest
 	@ValueSource(ints = {-1, 0, 1})
-	public void invalidPopulationSize(int pop) {
+	void invalidPopulationSize(final int pop) {
 		assertThrows(IllegalArgumentException.class, () -> b.populationSize(pop));
 	}
 
 	@ParameterizedTest
 	@ValueSource(ints = {-2, -1})
-	public void invalidMaxGenerations(int gen) {
+	void invalidMaxGenerations(final int gen) {
 		assertThrows(IllegalArgumentException.class, () -> b.maxGenerations(gen));
 	}
 
 	@Test
-	public void invalidStopCriterion() {
+	void invalidStopCriterion() {
 		assertThrows(NullPointerException.class, () -> b.stopCriterion(null));
 	}
 
 	@ParameterizedTest
 	@ValueSource(doubles = {-0.1, 0.0, 1.0, 1.1})
-	public void invalidSurvivalRate(double sr) {
+	void invalidSurvivalRate(final double sr) {
 		assertThrows(IllegalArgumentException.class, () -> b.survivalRate(sr));
 	}
 
 	@ParameterizedTest
 	@ValueSource(doubles = {-0.1, 0.0, 1.0, 1.1})
-	public void invalidCrossoverRate(double cr) {
+	void invalidCrossoverRate(final double cr) {
 		assertThrows(IllegalArgumentException.class, () -> b.crossoverRate(cr));
 	}
 
 	@ParameterizedTest
 	@ValueSource(doubles = {-0.1, 0.0, 1.0, 1.1})
-	public void invalidMutationRate(double mr) {
+	void invalidMutationRate(final double mr) {
 		assertThrows(IllegalArgumentException.class, () -> b.mutationRate(mr));
 	}
 
 	@Test
-	public void invalidIndividualSupplier() {
+	void invalidIndividualSupplier() {
 		assertThrows(NullPointerException.class, () -> b.creation(null));
 	}
 
 	@Test
-	public void invalidCrossoverOperator() {
+	void invalidCrossoverOperator() {
 		assertThrows(NullPointerException.class, () -> b.crossover(null));
 	}
 
 	@Test
-	public void invalidMutationOperator() {
+	void invalidMutationOperator() {
 		assertThrows(NullPointerException.class, () -> b.mutation(null));
 	}
 
 	@Test
-	public void invalidMaximizeFunction() {
+	void invalidMaximizeFunction() {
 		assertThrows(NullPointerException.class, () -> b.maximize(null));
 	}
 
 	@Test
-	public void invalidMinimizeFunction() {
+	void invalidMinimizeFunction() {
 		assertThrows(NullPointerException.class, () -> b.minimize(null));
 	}
 
 	@Test
-	public void noTerminationCriterionIsAllowed() {
+	void noTerminationCriterionIsAllowed() {
 		b.survivalRate(0.5)
 				.populationSize(100)
 				.creation(() -> null)
@@ -115,7 +115,7 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void noNullsFirstGeneration() {
+	void noNullsFirstGeneration() {
 		assertThrows(NullPointerException.class, () -> b.firstGeneration(null, ""));
 		assertThrows(NullPointerException.class, () -> b.firstGeneration("", null));
 		assertThrows(NullPointerException.class, () -> b.firstGeneration("a", "b", null));
@@ -124,7 +124,7 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void invalidFirstGeneration() {
+	void invalidFirstGeneration() {
 		b.populationSize(2)
 				.firstGeneration("a", "b", "c")
 				.creation(() -> null)
@@ -135,7 +135,7 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void invalidFirstGenerationSet() {
+	void invalidFirstGenerationSet() {
 		b.populationSize(2)
 				.firstGeneration(Set.of("a", "b", "c"))
 				.creation(() -> null)
@@ -146,7 +146,7 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void fluentSyntax() {
+	void fluentSyntax() {
 		b.survivalRate(0.5)
 				.populationSize(100)
 				.maxGenerations(100)
@@ -160,7 +160,7 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void cannotBuildTwoTimes() {
+	void cannotBuildTwoTimes() {
 		b.survivalRate(0.5)
 				.populationSize(100)
 				.maxGenerations(100)
@@ -175,7 +175,7 @@ public final class GAConfigTest {
 	}
 
 	@Test
-	public void fieldsGetSet() {
+	void fieldsGetSet() {
 		final GeneticAlgorithmConfig<String> c = b.survivalRate(0.5)
 				.populationSize(100)
 				.maxGenerations(100)

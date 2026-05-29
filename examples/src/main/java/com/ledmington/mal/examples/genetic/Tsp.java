@@ -32,18 +32,19 @@ import com.ledmington.mal.genetic.GeneticAlgorithm;
 import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
 import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class Tsp {
 
-	private static final RandomGenerator rng =
+	private static final RandomGenerator RNG =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
 	private static void shuffle(int[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			int j;
 			do {
-				j = rng.nextInt(0, arr.length);
+				j = RNG.nextInt(0, arr.length);
 			} while (i == j);
-			int tmp = arr[i];
+			final int tmp = arr[i];
 			arr[i] = arr[j];
 			arr[j] = tmp;
 		}
@@ -54,7 +55,7 @@ public final class Tsp {
 		private final int[] array;
 		private final int cachedHashCode;
 
-		public Solution(final int[] v) {
+		/* default */ Solution(final int... v) {
 			this.array = Objects.requireNonNull(v);
 
 			int h = 17;
@@ -72,10 +73,12 @@ public final class Tsp {
 			return array[i];
 		}
 
+		@Override
 		public int hashCode() {
 			return cachedHashCode;
 		}
 
+		@Override
 		public boolean equals(final Object other) {
 			if (other == null) {
 				return false;
@@ -98,6 +101,7 @@ public final class Tsp {
 			return true;
 		}
 
+		@Override
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			sb.append('[');
@@ -141,8 +145,8 @@ public final class Tsp {
 		System.out.println();
 		System.out.println("Cities coordinates:");
 		for (int i = 0; i < nCities; i++) {
-			coordinates[0][i] = rng.nextDouble(-10.0, 10.0);
-			coordinates[1][i] = rng.nextDouble(-10.0, 10.0);
+			coordinates[0][i] = RNG.nextDouble(-10.0, 10.0);
+			coordinates[1][i] = RNG.nextDouble(-10.0, 10.0);
 			System.out.printf("%2d: (%+.3f; %+.3f)%n", i, coordinates[0][i], coordinates[1][i]);
 		}
 		System.out.println();
@@ -178,7 +182,7 @@ public final class Tsp {
 							final int[] result = new int[nCities];
 
 							for (int i = 0; i < nCities; i++) {
-								result[i] = rng.nextBoolean() ? a.get(i) : b.get(i);
+								result[i] = RNG.nextBoolean() ? a.get(i) : b.get(i);
 							}
 
 							return new Solution(result);
@@ -186,8 +190,8 @@ public final class Tsp {
 						.mutation(x -> {
 							final int[] y = new int[nCities];
 							System.arraycopy(x.getArray(), 0, y, 0, nCities);
-							final int i = rng.nextInt(0, nCities);
-							y[i] = rng.nextInt(0, nCities);
+							final int i = RNG.nextInt(0, nCities);
+							y[i] = RNG.nextInt(0, nCities);
 							return new Solution(y);
 						})
 						.minimize(x -> {

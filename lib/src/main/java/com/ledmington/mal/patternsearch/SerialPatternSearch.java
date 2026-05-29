@@ -117,11 +117,6 @@ public class SerialPatternSearch<X> implements PatternSearch<X> {
 		double f0 = objectiveFunction.apply(center);
 		double h = step;
 		while (h >= epsilon) {
-			System.out.printf("h: %.6f.%n", h);
-			System.out.printf("Current center: '%s'.%n", center);
-			System.out.printf("Value at center: %.6f.%n", f0);
-			System.out.println();
-
 			final Pair<X, Double> bestNeighbor = findBestNeighbor(center, h);
 
 			// If we found a better neighbor, we move to it without modifying h

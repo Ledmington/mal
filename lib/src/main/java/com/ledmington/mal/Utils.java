@@ -41,7 +41,7 @@ public final class Utils {
 			final double result = weight.apply(x);
 			if (result < 0.0) {
 				throw new IllegalArgumentException(String.format(
-						"Negative weights are not allowed: the object '%s' produced the weight %f",
+						"Negative weights are not allowed: the object '%s' produced the weight %f.",
 						x.toString(), result));
 			}
 			return result;
@@ -54,10 +54,10 @@ public final class Utils {
 
 			double sum = 0.0;
 			for (int i = 0; i < values.size() - 1; i++) {
-				final X ith_element = values.get(i);
-				sum += safeWeight.apply(ith_element);
+				final X ithElement = values.get(i);
+				sum += safeWeight.apply(ithElement);
 				if (sum >= chosenWeight) {
-					return ith_element;
+					return ithElement;
 				}
 			}
 

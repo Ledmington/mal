@@ -25,9 +25,10 @@ import com.ledmington.mal.examples.genetic.Knapsack;
 import com.ledmington.mal.examples.genetic.NeuralNetwork;
 import com.ledmington.mal.examples.genetic.Tsp;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class Main {
 
-	private static final Map<String, Map<String, Runnable>> examples = Map.of(
+	private static final Map<String, Map<String, Runnable>> EXAMPLES = Map.of(
 			"genetic",
 			Map.of(
 					"tsp",
@@ -49,15 +50,17 @@ public final class Main {
 					"rosenbrock",
 					com.ledmington.mal.examples.patternsearch.Rosenbrock::new));
 
+	private Main() {}
+
 	private static void printAvailableAlgorithms() {
 		System.out.println("These are the available algorithms:");
-		examples.keySet().stream().sorted().forEach(k -> System.out.printf(" - %s%n", k));
+		EXAMPLES.keySet().stream().sorted().forEach(k -> System.out.printf(" - %s%n", k));
 		System.out.println();
 	}
 
 	private static void printAvailableAlgorithmsAndExamples() {
 		System.out.println("These are the available examples divided by algorithms:");
-		for (final Map.Entry<String, Map<String, Runnable>> e : examples.entrySet()) {
+		for (final Map.Entry<String, Map<String, Runnable>> e : EXAMPLES.entrySet()) {
 			System.out.printf(" - %s:%n", e.getKey());
 			for (final String ex : e.getValue().keySet()) {
 				System.out.printf("   - %s%n", ex);
@@ -77,7 +80,7 @@ public final class Main {
 		final String algorithm = args[0];
 		final String example = args[1];
 
-		final Optional<String> chosenAlgorithm = examples.keySet().stream()
+		final Optional<String> chosenAlgorithm = EXAMPLES.keySet().stream()
 				.filter(k -> k.equalsIgnoreCase(algorithm))
 				.findFirst();
 		if (chosenAlgorithm.isEmpty()) {
@@ -88,7 +91,7 @@ public final class Main {
 		}
 
 		final String alg = chosenAlgorithm.orElseThrow();
-		final Optional<String> chosenExample = examples.get(alg).keySet().stream()
+		final Optional<String> chosenExample = EXAMPLES.get(alg).keySet().stream()
 				.filter(k -> k.equalsIgnoreCase(example))
 				.findFirst();
 		if (chosenExample.isEmpty()) {
@@ -98,7 +101,7 @@ public final class Main {
 			return;
 		}
 
-		examples.get(alg).get(chosenExample.orElseThrow()).run();
+		EXAMPLES.get(alg).get(chosenExample.orElseThrow()).run();
 
 		// needed for automatic termination of the executors
 		System.exit(0);

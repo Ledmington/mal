@@ -27,14 +27,16 @@ import java.util.random.RandomGeneratorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public final class SerialGATest extends GATest {
+final class SerialGATest extends GATest {
+
 	@BeforeEach
+	@Override
 	public void setup() {
 		ga = new SerialGeneticAlgorithm<>();
 	}
 
 	@Test
-	public void nullRandomGenerator() {
+	void nullRandomGenerator() {
 		assertThrows(NullPointerException.class, () -> new SerialGeneticAlgorithm<>(null));
 	}
 
@@ -56,7 +58,7 @@ public final class SerialGATest extends GATest {
 	}
 
 	@Test
-	public void determinism() {
+	void determinism() {
 		// two algorithms with the same config and the same RandomGenerator must return the same result (the best
 		// solution)
 		final long seed = System.nanoTime();

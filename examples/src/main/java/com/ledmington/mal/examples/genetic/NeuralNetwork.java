@@ -27,10 +27,10 @@ import com.ledmington.mal.genetic.ParallelGeneticAlgorithm;
 
 public final class NeuralNetwork {
 
-	private static final RandomGenerator rng =
+	private static final RandomGenerator RNG =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-	private static float sigmoid(float x) {
+	private static float sigmoid(final float x) {
 		return (float) (Math.exp(x) / (1.0f + Math.exp(x)));
 	}
 
@@ -46,7 +46,7 @@ public final class NeuralNetwork {
 		private int cachedHashCode;
 		private boolean isHashCodeSet = false;
 
-		public Network(int nInputs, int nMiddle, int nOutputs, boolean initialize) {
+		public Network(final int nInputs, final int nMiddle, final int nOutputs, final boolean initialize) {
 			this.w1 = new float[nInputs][nMiddle];
 			this.b1 = new float[nMiddle];
 			this.w2 = new float[nMiddle][nOutputs];
@@ -55,15 +55,15 @@ public final class NeuralNetwork {
 			if (initialize) {
 				for (int i = 0; i < nMiddle; i++) {
 					for (int j = 0; j < nInputs; j++) {
-						this.w1[j][i] = rng.nextFloat(-1.0f, 1.0f);
+						this.w1[j][i] = RNG.nextFloat(-1.0f, 1.0f);
 					}
-					this.b1[i] = rng.nextFloat(-nInputs, nInputs);
+					this.b1[i] = RNG.nextFloat(-nInputs, nInputs);
 				}
 				for (int i = 0; i < nOutputs; i++) {
 					for (int j = 0; j < nMiddle; j++) {
-						this.w2[j][i] = rng.nextFloat(-1.0f, 1.0f);
+						this.w2[j][i] = RNG.nextFloat(-1.0f, 1.0f);
 					}
-					this.b2[i] = rng.nextFloat(-nMiddle, nMiddle);
+					this.b2[i] = RNG.nextFloat(-nMiddle, nMiddle);
 				}
 			}
 		}
@@ -89,7 +89,7 @@ public final class NeuralNetwork {
 			System.arraycopy(n.b2, 0, this.b2, 0, nOutputs);
 		}
 
-		public float[] predict(final float[] inputs) {
+		public float[] predict(final float... inputs) {
 			if (inputs.length != w1.length) {
 				throw new IllegalArgumentException(
 						String.format("Wrong input size: expected %,d but was %,d", w1.length, inputs.length));
@@ -118,6 +118,7 @@ public final class NeuralNetwork {
 			return outputLayerResult;
 		}
 
+		@Override
 		public int hashCode() {
 			if (isHashCodeSet) {
 				return cachedHashCode;
@@ -146,6 +147,7 @@ public final class NeuralNetwork {
 			return cachedHashCode;
 		}
 
+		@Override
 		public boolean equals(final Object other) {
 			if (other == null) {
 				return false;
@@ -177,17 +179,17 @@ public final class NeuralNetwork {
 		final float[][] solutions = new float[nPoints][outputVariables]; // default initialized to 0.0f
 
 		for (int i = 0; i < nPoints; i++) {
-			switch (rng.nextInt(0, 3)) {
+			switch (RNG.nextInt(0, 3)) {
 				case 0 -> {
-					dataset[i] = new Point(rng.nextFloat(-3.0f, 3.0f), rng.nextFloat(0.0f, 4.0f));
+					dataset[i] = new Point(RNG.nextFloat(-3.0f, 3.0f), RNG.nextFloat(0.0f, 4.0f));
 					solutions[i][0] = 1.0f;
 				}
 				case 1 -> {
-					dataset[i] = new Point(rng.nextFloat(-5.0f, 1.0f), rng.nextFloat(-1.0f, 2.0f));
+					dataset[i] = new Point(RNG.nextFloat(-5.0f, 1.0f), RNG.nextFloat(-1.0f, 2.0f));
 					solutions[i][1] = 1.0f;
 				}
 				case 2 -> {
-					dataset[i] = new Point(rng.nextFloat(2.0f, 4.0f), rng.nextFloat(-3.0f, 1.0f));
+					dataset[i] = new Point(RNG.nextFloat(2.0f, 4.0f), RNG.nextFloat(-3.0f, 1.0f));
 					solutions[i][2] = 1.0f;
 				}
 				default -> throw new IllegalStateException("There should have been only three clusters of points");
@@ -209,15 +211,15 @@ public final class NeuralNetwork {
 
 					for (int i = 0; i < sizeMiddleLayer; i++) {
 						for (int j = 0; j < inputVariables; j++) {
-							son.w1[j][i] = rng.nextBoolean() ? a.w1[j][i] : b.w1[j][i];
+							son.w1[j][i] = RNG.nextBoolean() ? a.w1[j][i] : b.w1[j][i];
 						}
-						son.b1[i] = rng.nextBoolean() ? a.b1[i] : b.b1[i];
+						son.b1[i] = RNG.nextBoolean() ? a.b1[i] : b.b1[i];
 					}
 					for (int i = 0; i < outputVariables; i++) {
 						for (int j = 0; j < sizeMiddleLayer; j++) {
-							son.w2[j][i] = rng.nextBoolean() ? a.w2[j][i] : b.w2[j][i];
+							son.w2[j][i] = RNG.nextBoolean() ? a.w2[j][i] : b.w2[j][i];
 						}
-						son.b2[i] = rng.nextBoolean() ? a.b2[i] : b.b2[i];
+						son.b2[i] = RNG.nextBoolean() ? a.b2[i] : b.b2[i];
 					}
 
 					return son;
@@ -226,21 +228,21 @@ public final class NeuralNetwork {
 					final Network mutated = new Network(x);
 
 					// choosing to mutate a weight or a bias of which layer
-					if (rng.nextBoolean()) {
-						if (rng.nextBoolean()) {
-							mutated.w1[rng.nextInt(0, inputVariables)][rng.nextInt(0, sizeMiddleLayer)] =
-									rng.nextFloat(-1.0f, 1.0f);
+					if (RNG.nextBoolean()) {
+						if (RNG.nextBoolean()) {
+							mutated.w1[RNG.nextInt(0, inputVariables)][RNG.nextInt(0, sizeMiddleLayer)] =
+									RNG.nextFloat(-1.0f, 1.0f);
 						} else {
-							mutated.b1[rng.nextInt(0, sizeMiddleLayer)] =
-									rng.nextFloat(-inputVariables, inputVariables);
+							mutated.b1[RNG.nextInt(0, sizeMiddleLayer)] =
+									RNG.nextFloat(-inputVariables, inputVariables);
 						}
 					} else {
-						if (rng.nextBoolean()) {
-							mutated.w2[rng.nextInt(0, sizeMiddleLayer)][rng.nextInt(0, outputVariables)] =
-									rng.nextFloat(-1.0f, 1.0f);
+						if (RNG.nextBoolean()) {
+							mutated.w2[RNG.nextInt(0, sizeMiddleLayer)][RNG.nextInt(0, outputVariables)] =
+									RNG.nextFloat(-1.0f, 1.0f);
 						} else {
-							mutated.b2[rng.nextInt(0, outputVariables)] =
-									rng.nextFloat(-sizeMiddleLayer, sizeMiddleLayer);
+							mutated.b2[RNG.nextInt(0, outputVariables)] =
+									RNG.nextFloat(-sizeMiddleLayer, sizeMiddleLayer);
 						}
 					}
 

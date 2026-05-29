@@ -29,6 +29,7 @@ import com.ledmington.mal.genetic.GeneticAlgorithm;
 import com.ledmington.mal.genetic.GeneticAlgorithmConfig;
 import com.ledmington.mal.genetic.SerialGeneticAlgorithm;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class RandomStrings {
 	public RandomStrings() {
 		final long beginning = System.nanoTime();
