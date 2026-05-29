@@ -37,11 +37,11 @@ public final class Diet {
 	private enum Food {
 		BANANA("banana", 0.89, 890.0, 0.93, 0.04, 0.03),
 		CARROT("carrot", 0.54, 410.0, 0.86, 0.09, 0.05),
-		APPLE("apple", 0.94, 521.978, 0.2653, 0.0045, 0.00317),
+		APPLE("apple", 0.94, 521.978, 0.265_3, 0.004_5, 0.003_17),
 		PIZZA("pizza", 5.0, 2710.0, 0.33, 0.11, 0.1),
-		STEAK("steak", 15.49, 2105.882, 0.0001, 0.1452, 0.0424),
-		LENTILS("lentils", 1.39, 1175.0, 0.1702, 0.25, 0.01846),
-		PARMESAN("parmesan", 10.55, 4310.0, 0.003, 0.3453, 0.6515);
+		STEAK("steak", 15.49, 2105.882, 0.000_1, 0.145_2, 0.042_4),
+		LENTILS("lentils", 1.39, 1175.0, 0.170_2, 0.25, 0.018_46),
+		PARMESAN("parmesan", 10.55, 4310.0, 0.003, 0.345_3, 0.651_5);
 
 		private final String name;
 		private final double avgPricePerKilo;
@@ -99,7 +99,7 @@ public final class Diet {
 		private final double[] quantities = new double[Food.values().length];
 		private final int cachedHashCode;
 
-		public Solution(final double[] quantities) {
+		/* default */ Solution(final double... quantities) {
 			Objects.requireNonNull(quantities);
 			if (quantities.length != Food.values().length) {
 				throw new IllegalArgumentException("Invalid length of food quantities.");
@@ -121,7 +121,7 @@ public final class Diet {
 			cachedHashCode = h;
 		}
 
-		public double get(final int index) {
+		/* default */ double get(final int index) {
 			return quantities[index];
 		}
 
@@ -285,6 +285,6 @@ public final class Diet {
 		final long end = System.nanoTime();
 
 		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("Total search time: %.3f seconds%n", (end - beginning) / 1_000_000_000.0);
 	}
 }

@@ -71,8 +71,7 @@ public final class Main {
 	public static void main(final String[] args) {
 		if (args.length == 0) {
 			printAvailableAlgorithmsAndExamples();
-			System.out.println(
-					"\nRerun the program like this: java -jar examples.jar simulated_annealing random_strings");
+			System.out.println("\nRerun the program like this: java -jar examples.jar genetic random_strings");
 			System.exit(1);
 			return;
 		}

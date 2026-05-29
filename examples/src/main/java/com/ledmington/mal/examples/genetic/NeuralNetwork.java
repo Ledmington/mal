@@ -46,7 +46,7 @@ public final class NeuralNetwork {
 		private int cachedHashCode;
 		private boolean isHashCodeSet = false;
 
-		public Network(final int nInputs, final int nMiddle, final int nOutputs, final boolean initialize) {
+		/* default */ Network(final int nInputs, final int nMiddle, final int nOutputs, final boolean initialize) {
 			this.w1 = new float[nInputs][nMiddle];
 			this.b1 = new float[nMiddle];
 			this.w2 = new float[nMiddle][nOutputs];
@@ -68,7 +68,7 @@ public final class NeuralNetwork {
 			}
 		}
 
-		public Network(final Network n) {
+		/* default */ Network(final Network n) {
 			final int nInputs = n.w1.length;
 			final int nMiddle = n.w2.length;
 			final int nOutputs = n.w2[0].length;
@@ -89,7 +89,7 @@ public final class NeuralNetwork {
 			System.arraycopy(n.b2, 0, this.b2, 0, nOutputs);
 		}
 
-		public float[] predict(final float... inputs) {
+		/* default */ float[] predict(final float... inputs) {
 			if (inputs.length != w1.length) {
 				throw new IllegalArgumentException(
 						String.format("Wrong input size: expected %,d but was %,d", w1.length, inputs.length));
@@ -171,9 +171,7 @@ public final class NeuralNetwork {
 		overlapping clusters of points in the 2-D cartesian plane.
 		So, the input variables are 2 and the output variables are 3.
 		 */
-		final int inputVariables = 2;
 		final int outputVariables = 3;
-		final int sizeMiddleLayer = 32;
 		final int nPoints = 10_000;
 		final Point[] dataset = new Point[nPoints];
 		final float[][] solutions = new float[nPoints][outputVariables]; // default initialized to 0.0f
@@ -198,6 +196,9 @@ public final class NeuralNetwork {
 
 		final GeneticAlgorithm<Network> ga =
 				new ParallelGeneticAlgorithm<>(Runtime.getRuntime().availableProcessors());
+
+		final int inputVariables = 2;
+		final int sizeMiddleLayer = 32;
 
 		ga.setState(GeneticAlgorithmConfig.<Network>builder()
 				.populationSize(1_000)

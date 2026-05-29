@@ -37,7 +37,7 @@ public final class RandomStrings {
 		final String alphabet =
 				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-_@#[]{}()!?='\"+*/";
 		final String targetString =
-				"This library for Minimization Algorithms is absolutely fantastic! I cannot wait to try it! Now let's write another time just to have longer strings and, therefore, add artificial complexity to the problem.";
+				"This library for Minimization Algorithms is absolutely fantastic! I cannot wait to try it!";
 		final int targetLength = targetString.length();
 		final Supplier<Character> randomChar = () -> alphabet.charAt(rng.nextInt(0, alphabet.length()));
 
@@ -134,6 +134,6 @@ public final class RandomStrings {
 		final long end = System.nanoTime();
 
 		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("Total search time: %.3f seconds%n", (end - beginning) / 1_000_000_000.0);
 	}
 }

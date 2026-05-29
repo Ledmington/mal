@@ -25,7 +25,9 @@ import java.util.stream.IntStream;
 
 import com.ledmington.mal.patternsearch.PatternSearch;
 
+@SuppressWarnings("PMD.SystemPrintln")
 public final class RandomStrings {
+
 	public RandomStrings() {
 		final long beginning = System.nanoTime();
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
@@ -41,7 +43,7 @@ public final class RandomStrings {
 				.factor(0.5)
 				.epsilon(1.0)
 				.startingPoint(IntStream.range(0, targetLength)
-						.mapToObj(x -> Character.toString(randomChar.get()))
+						.mapToObj(_ -> Character.toString(randomChar.get()))
 						.collect(Collectors.joining()))
 				.dimensions(targetLength)
 				.minimize(s -> {
@@ -67,6 +69,6 @@ public final class RandomStrings {
 
 		final long end = System.nanoTime();
 
-		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("Total search time: %.3f seconds%n", (end - beginning) / 1_000_000_000.0);
 	}
 }

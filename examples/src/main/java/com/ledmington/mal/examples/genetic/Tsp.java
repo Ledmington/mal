@@ -38,7 +38,7 @@ public final class Tsp {
 	private static final RandomGenerator RNG =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-	private static void shuffle(int[] arr) {
+	private static void shuffle(final int... arr) {
 		for (int i = 0; i < arr.length; i++) {
 			int j;
 			do {
@@ -65,11 +65,12 @@ public final class Tsp {
 			cachedHashCode = h;
 		}
 
-		public int[] getArray() {
+		@SuppressWarnings("PMD.MethodReturnsInternalArray")
+		/* default */ int[] getArray() {
 			return array;
 		}
 
-		public int get(final int i) {
+		/* default */ int get(final int i) {
 			return array[i];
 		}
 
@@ -119,6 +120,7 @@ public final class Tsp {
 		}
 	}
 
+	@SuppressWarnings("PMD.AvoidReassigningParameters")
 	private static BigInteger factorial(BigInteger n) {
 		if (n.compareTo(BigInteger.ZERO) == 0 || n.compareTo(BigInteger.ONE) == 0) {
 			return BigInteger.ONE;
@@ -241,6 +243,6 @@ public final class Tsp {
 		final long end = System.nanoTime();
 
 		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("Total search time: %.3f seconds%n", (end - beginning) / 1_000_000_000.0);
 	}
 }

@@ -35,7 +35,7 @@ public final class Rosenbrock {
 			this.x = x;
 		}
 
-		public double get(final int idx) {
+		double get(final int idx) {
 			return x[idx];
 		}
 
@@ -112,6 +112,6 @@ public final class Rosenbrock {
 
 		final long end = System.nanoTime();
 
-		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("Total search time: %.3f seconds%n", (end - beginning) / 1_000_000_000.0);
 	}
 }

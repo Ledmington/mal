@@ -50,7 +50,10 @@
 
     <rule ref="category/java/multithreading.xml" />
 
-    <rule ref="category/java/performance.xml" />
+    <rule ref="category/java/performance.xml">
+        <!-- Avoid reporting redundant field initialization -->
+        <exclude name="RedundantFieldInitializer" />
+    </rule>
 
     <rule ref="category/java/security.xml" />
 </ruleset>

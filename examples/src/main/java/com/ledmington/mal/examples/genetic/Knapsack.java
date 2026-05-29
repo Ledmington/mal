@@ -49,11 +49,12 @@ public final class Knapsack {
 			cachedHashCode = h;
 		}
 
-		public boolean get(final int i) {
+		/* default */ boolean get(final int i) {
 			return array[i];
 		}
 
-		public boolean[] getArray() {
+		@SuppressWarnings("PMD.MethodReturnsInternalArray")
+		/* default */ boolean[] getArray() {
 			return array;
 		}
 
@@ -171,10 +172,11 @@ public final class Knapsack {
 								}
 							}
 
-							final double validSolutionPrize = 1_000.0;
 							if (totalWeight > capacity) {
 								return (double) (nItems - n);
 							}
+
+							final double validSolutionPrize = 1_000.0;
 							return s + validSolutionPrize;
 						});
 
@@ -215,6 +217,6 @@ public final class Knapsack {
 		final long end = System.nanoTime();
 
 		System.out.printf("%n%,d solutions evaluated%n", allSolutions.size());
-		System.out.printf("Total search time: %.3f seconds%n", (double) (end - beginning) / 1_000_000_000.0);
+		System.out.printf("Total search time: %.3f seconds%n", (end - beginning) / 1_000_000_000.0);
 	}
 }
