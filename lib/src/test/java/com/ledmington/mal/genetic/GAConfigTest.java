@@ -106,10 +106,10 @@ final class GAConfigTest {
 		b.survivalRate(0.5)
 				.populationSize(100)
 				.creation(() -> null)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.crossoverRate(0.6)
 				.mutationRate(0.2)
-				.maximize(d -> 0.0)
+				.maximize(_ -> 0.0)
 				.mutation(d -> d)
 				.build();
 	}
@@ -128,9 +128,9 @@ final class GAConfigTest {
 		b.populationSize(2)
 				.firstGeneration("a", "b", "c")
 				.creation(() -> null)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.mutation(d -> d)
-				.maximize(s -> 0.0);
+				.maximize(_ -> 0.0);
 		assertThrows(IllegalArgumentException.class, () -> b.build());
 	}
 
@@ -139,9 +139,9 @@ final class GAConfigTest {
 		b.populationSize(2)
 				.firstGeneration(Set.of("a", "b", "c"))
 				.creation(() -> null)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.mutation(d -> d)
-				.maximize(s -> 0.0);
+				.maximize(_ -> 0.0);
 		assertThrows(IllegalArgumentException.class, () -> b.build());
 	}
 
@@ -151,10 +151,10 @@ final class GAConfigTest {
 				.populationSize(100)
 				.maxGenerations(100)
 				.creation(() -> null)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.crossoverRate(0.6)
 				.mutationRate(0.2)
-				.maximize(d -> 0.0)
+				.maximize(_ -> 0.0)
 				.mutation(d -> d)
 				.build();
 	}
@@ -165,10 +165,10 @@ final class GAConfigTest {
 				.populationSize(100)
 				.maxGenerations(100)
 				.creation(() -> null)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.crossoverRate(0.6)
 				.mutationRate(0.2)
-				.maximize(d -> 0.0)
+				.maximize(_ -> 0.0)
 				.mutation(d -> d);
 		b.build();
 		assertThrows(IllegalStateException.class, () -> b.build());
@@ -180,10 +180,10 @@ final class GAConfigTest {
 				.populationSize(100)
 				.maxGenerations(100)
 				.creation(() -> null)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.crossoverRate(0.6)
 				.mutationRate(0.2)
-				.maximize(d -> 0.0)
+				.maximize(_ -> 0.0)
 				.mutation(d -> d)
 				.build();
 
