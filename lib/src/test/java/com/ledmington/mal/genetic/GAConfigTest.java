@@ -17,6 +17,7 @@
  */
 package com.ledmington.mal.genetic;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -32,13 +33,13 @@ final class GAConfigTest {
 	private GeneticAlgorithmConfig.GeneticAlgorithmConfigBuilder<String> b;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		b = GeneticAlgorithmConfig.builder();
 	}
 
 	@Test
 	void cannotBuildWithNoParameters() {
-		assertThrows(Exception.class, () -> b.build());
+		assertThrows(Exception.class, b::build);
 	}
 
 	@ParameterizedTest
@@ -103,7 +104,7 @@ final class GAConfigTest {
 
 	@Test
 	void noTerminationCriterionIsAllowed() {
-		b.survivalRate(0.5)
+		assertDoesNotThrow(() -> b.survivalRate(0.5)
 				.populationSize(100)
 				.creation(() -> null)
 				.crossover((_, b) -> b)
@@ -111,7 +112,7 @@ final class GAConfigTest {
 				.mutationRate(0.2)
 				.maximize(_ -> 0.0)
 				.mutation(d -> d)
-				.build();
+				.build());
 	}
 
 	@Test
@@ -131,7 +132,7 @@ final class GAConfigTest {
 				.crossover((_, b) -> b)
 				.mutation(d -> d)
 				.maximize(_ -> 0.0);
-		assertThrows(IllegalArgumentException.class, () -> b.build());
+		assertThrows(IllegalArgumentException.class, b::build);
 	}
 
 	@Test
@@ -142,7 +143,7 @@ final class GAConfigTest {
 				.crossover((_, b) -> b)
 				.mutation(d -> d)
 				.maximize(_ -> 0.0);
-		assertThrows(IllegalArgumentException.class, () -> b.build());
+		assertThrows(IllegalArgumentException.class, b::build);
 	}
 
 	@Test
@@ -171,7 +172,7 @@ final class GAConfigTest {
 				.maximize(_ -> 0.0)
 				.mutation(d -> d);
 		b.build();
-		assertThrows(IllegalStateException.class, () -> b.build());
+		assertThrows(IllegalStateException.class, b::build);
 	}
 
 	@Test

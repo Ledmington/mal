@@ -16,6 +16,8 @@
         <exclude name="ShortClassName" />
         <!-- Avoid reporting methods with early exits -->
         <exclude name="OnlyOneReturn" />
+        <!-- Avoid reporting default constructors -->
+        <exclude name="UnnecessaryConstructor" />
     </rule>
 
     <!-- Avoid reporting variables with a long name -->
@@ -28,12 +30,31 @@
     <rule ref="category/java/design.xml">
         <!-- Avoid reporting usage of classes from outside the package hierarchy -->
         <exclude name="LoosePackageCoupling" />
+
+        <!-- Rules excluded to be configured later in this file -->
+        <exclude name="TooManyMethods" />
+        <exclude name="CyclomaticComplexity" />
+        <exclude name="LawOfDemeter" />
     </rule>
 
+    <!-- Avoid reporting classes with too many methods -->
+    <rule ref="category/java/design.xml/TooManyMethods">
+        <properties>
+            <property name="maxmethods" value="30" />
+        </properties>
+    </rule>
     <!-- Avoid retrieving data from "too far away" -->
     <rule ref="category/java/design.xml/LawOfDemeter">
         <properties>
             <property name="trustRadius" value="3" />
+        </properties>
+    </rule>
+    <!-- Avoid reporting methods that are "too complex" -->
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="classReportLevel" value="80" />
+            <property name="methodReportLevel" value="35" />
+            <property name="cycloOptions" value="" />
         </properties>
     </rule>
 
@@ -48,7 +69,10 @@
 
     <rule ref="category/java/errorprone.xml" />
 
-    <rule ref="category/java/multithreading.xml" />
+    <rule ref="category/java/multithreading.xml">
+        <!-- Avoid reporting anything related to java.lang.Thread or Executors -->
+        <exclude name="DoNotUseThreads" />
+    </rule>
 
     <rule ref="category/java/performance.xml">
         <!-- Avoid reporting redundant field initialization -->

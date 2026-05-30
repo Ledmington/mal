@@ -23,6 +23,8 @@ import java.util.function.Function;
 @SuppressWarnings("PMD.AvoidFieldNameMatchingMethodName")
 public final class PatternSearchBuilder<X> {
 
+	private static final int DEFAULT_NUM_THREADS = 1;
+
 	private double step = 1.0;
 	private double k = 0.5;
 	private double epsilon = 1e-6;
@@ -30,12 +32,13 @@ public final class PatternSearchBuilder<X> {
 	private X startingPoint = null;
 	private Function<X, Double> objectiveFunction = null;
 	private TriFunction<X, Integer, Double, X> neighbor = null;
-	private int numThreads = 1;
+	private int numThreads = DEFAULT_NUM_THREADS;
 
 	public PatternSearchBuilder() {}
 
 	public PatternSearchBuilder<X> step(final double step) {
-		if (step <= 0.0) {
+		final double minimumStep = 0.0;
+		if (step <= minimumStep) {
 			throw new IllegalArgumentException("step must be >0.0.");
 		}
 		this.step = step;
@@ -43,7 +46,9 @@ public final class PatternSearchBuilder<X> {
 	}
 
 	public PatternSearchBuilder<X> factor(final double k) {
-		if (k <= 0.0 || k >= 1.0) {
+		final double minimumFactor = 0.0;
+		final double maximumFactor = 1.0;
+		if (k <= minimumFactor || k >= maximumFactor) {
 			throw new IllegalArgumentException("factor must be >0.0 and <1.0.");
 		}
 		this.k = k;
@@ -51,7 +56,8 @@ public final class PatternSearchBuilder<X> {
 	}
 
 	public PatternSearchBuilder<X> epsilon(final double epsilon) {
-		if (epsilon < 0.0) {
+		final double minimumEpsilon = 0.0;
+		if (epsilon < minimumEpsilon) {
 			throw new IllegalArgumentException("Epsilon must be >=0.0.");
 		}
 		this.epsilon = epsilon;
@@ -64,7 +70,8 @@ public final class PatternSearchBuilder<X> {
 	}
 
 	public PatternSearchBuilder<X> dimensions(final int dimensions) {
-		if (dimensions < 1) {
+		final int minimumDimensions = 1;
+		if (dimensions < minimumDimensions) {
 			throw new IllegalArgumentException("dimensions must be >=1.");
 		}
 		this.dimensions = dimensions;
@@ -82,13 +89,14 @@ public final class PatternSearchBuilder<X> {
 	}
 
 	public PatternSearchBuilder<X> parallel(final int numThreads) {
-		if (this.numThreads != 1) {
+		if (this.numThreads != DEFAULT_NUM_THREADS) {
 			throw new IllegalArgumentException("Cannot set number of threads twice.");
 		}
-		if (numThreads < 1 || numThreads > Runtime.getRuntime().availableProcessors()) {
+		final int minimumThreads = 1;
+		if (numThreads < minimumThreads || numThreads > Runtime.getRuntime().availableProcessors()) {
 			throw new IllegalArgumentException(String.format(
-					"Number of threads must be >=1 and <=%,d.",
-					Runtime.getRuntime().availableProcessors()));
+					"Number of threads must be >=%,d and <=%,d.",
+					minimumThreads, Runtime.getRuntime().availableProcessors()));
 		}
 		this.numThreads = numThreads;
 		return this;

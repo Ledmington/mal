@@ -27,6 +27,7 @@ public final class Utils {
 
 	private Utils() {}
 
+	@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 	public static <X> Supplier<X> weightedChoose(
 			final List<X> values, final Function<X, Double> weight, final RandomGenerator rng) {
 		Objects.requireNonNull(values, "The list of values cannot be null");

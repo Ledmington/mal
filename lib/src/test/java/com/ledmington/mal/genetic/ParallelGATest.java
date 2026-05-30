@@ -75,7 +75,7 @@ final class ParallelGATest extends GATest {
 				firstBest,
 				secondBest,
 				() -> String.format(
-						"Running the Parallel Genetic Algorithm twice with the same seed (0x%016) was expected to give the same result but in the first run the best result was the %d-th while in the second was the %d-th.",
+						"Running the Parallel Genetic Algorithm twice with the same seed (0x%016xL) was expected to give the same result but in the first run the best result was the %d-th while in the second was the %d-th.",
 						seed, firstBest, secondBest));
 	}
 }

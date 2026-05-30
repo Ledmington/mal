@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
@@ -40,7 +40,7 @@ final class TestUtils {
 	private static final RandomGenerator RNG =
 			RandomGeneratorFactory.getDefault().create(System.nanoTime());
 
-	public static Stream<Arguments> inputs() {
+	private static Stream<Arguments> inputs() {
 		return Stream.of(
 				Arguments.of(List.of(1, 2, 3), Function.identity(), null),
 				Arguments.of(List.of(1, 2, 3), null, RNG),
@@ -81,7 +81,7 @@ final class TestUtils {
 	void weightsWork() {
 		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		final Function<Integer, Double> w = x -> (double) x;
-		final Map<Integer, Integer> count = new HashMap<>();
+		final Map<Integer, Integer> count = new ConcurrentHashMap<>();
 		for (final Integer x : values) {
 			count.put(x, 0);
 		}
@@ -108,7 +108,7 @@ final class TestUtils {
 	@Test
 	void negativeWeightsDoNotWork() {
 		final List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
-		final Function<Integer, Double> w = x -> -(double) x;
+		final Function<Integer, Double> w = x -> (double) -x;
 
 		assertThrows(IllegalArgumentException.class, () -> Utils.weightedChoose(values, w, RNG));
 	}

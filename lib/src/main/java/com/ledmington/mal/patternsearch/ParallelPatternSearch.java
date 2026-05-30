@@ -59,7 +59,7 @@ public final class ParallelPatternSearch<X> extends SerialPatternSearch<X> {
 				while (!terminated) {
 					terminated = executor.awaitTermination(1, TimeUnit.HOURS);
 				}
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				throw new RuntimeException(e);
 			}
 		}));

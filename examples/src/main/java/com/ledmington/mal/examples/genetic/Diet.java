@@ -147,18 +147,12 @@ public final class Diet {
 			if (other == null) {
 				return false;
 			}
-			if (this == other) {
-				return true;
-			}
-			if (!(other instanceof Solution s)) {
-				return false;
-			}
-			return Arrays.equals(this.quantities, s.quantities);
+			return (this == other) || (other instanceof Solution s && Arrays.equals(this.quantities, s.quantities));
 		}
 	}
 
-	private double sqdiff(final double x, final double y) {
-		final double d = Math.abs(x - y);
+	private double squareDifference(final double x, final double y) {
+		final double d = x - y;
 		return d * d;
 	}
 
@@ -220,33 +214,33 @@ public final class Diet {
 							}
 
 							if (calories < minCalories) {
-								score += sqdiff(calories, minCalories);
+								score += squareDifference(calories, minCalories);
 							} else if (calories > maxCalories) {
-								score += sqdiff(calories, maxCalories);
+								score += squareDifference(calories, maxCalories);
 							}
 
 							final double minCarbs = calories * minCarbsPercentage;
 							final double maxCarbs = calories * maxCarbsPercentage;
 							if (carbs < minCarbs) {
-								score += sqdiff(carbs, minCarbs);
+								score += squareDifference(carbs, minCarbs);
 							} else if (carbs > maxCarbs) {
-								score += sqdiff(carbs, maxCarbs);
+								score += squareDifference(carbs, maxCarbs);
 							}
 
 							final double minProteins = calories * minProteinsPercentage;
 							final double maxProteins = calories * maxProteinsPercentage;
 							if (proteins < minProteins) {
-								score += sqdiff(proteins, minProteins);
+								score += squareDifference(proteins, minProteins);
 							} else if (proteins > maxProteins) {
-								score += sqdiff(proteins, maxProteins);
+								score += squareDifference(proteins, maxProteins);
 							}
 
 							final double minFats = calories * minFatsPercentage;
 							final double maxFats = calories * maxFatsPercentage;
 							if (fats < minFats) {
-								score += sqdiff(fats, minFats);
+								score += squareDifference(fats, minFats);
 							} else if (fats > maxFats) {
-								score += sqdiff(fats, maxFats);
+								score += squareDifference(fats, maxFats);
 							}
 
 							return score;

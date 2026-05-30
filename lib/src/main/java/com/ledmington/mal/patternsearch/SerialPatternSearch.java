@@ -62,10 +62,13 @@ public class SerialPatternSearch<X> implements PatternSearch<X> {
 			final int d,
 			final Function<X, Double> objectiveFunction,
 			final TriFunction<X, Integer, Double, X> neighbor) {
-		if (epsilon < 0.0) {
-			throw new IllegalArgumentException("Epsilon must be >=0.0.");
+		final double minimumEpsilon = 0.0;
+		if (epsilon < minimumEpsilon) {
+			throw new IllegalArgumentException(
+					String.format("Epsilon must be >=%f but was %f.", minimumEpsilon, epsilon));
 		}
 		this.epsilon = epsilon;
+
 		if (step <= 0.0) {
 			throw new IllegalArgumentException("step must be >0.0.");
 		}

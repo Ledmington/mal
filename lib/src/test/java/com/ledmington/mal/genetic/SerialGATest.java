@@ -40,15 +40,15 @@ final class SerialGATest extends GATest {
 		assertThrows(NullPointerException.class, () -> new SerialGeneticAlgorithm<>(null));
 	}
 
-	private String tryWithSeed(final long seed) {
+	private int tryWithSeed(final long seed) {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(seed);
-		ga = new SerialGeneticAlgorithm<>(rng);
-		ga.setState(GeneticAlgorithmConfig.<String>builder()
+		final GeneticAlgorithm<Integer> ga = new SerialGeneticAlgorithm<>(rng);
+		ga.setState(GeneticAlgorithmConfig.<Integer>builder()
 				.maxGenerations(10)
-				.creation(() -> String.valueOf(rng.nextInt()))
-				.crossover((a, b) -> String.valueOf(Integer.parseInt(a) + Integer.parseInt(b)))
-				.mutation(x -> String.valueOf(Integer.parseInt(x) + 1))
-				.maximize(s -> (double) s.length())
+				.creation(rng::nextInt)
+				.crossover((a, b) -> (a + b) / 2)
+				.mutation(x -> x + 1)
+				.maximize(x -> (double) Math.abs(x))
 				.build());
 		ga.run();
 		return ga.getState().scores().entrySet().stream()
@@ -63,9 +63,14 @@ final class SerialGATest extends GATest {
 		// solution)
 		final long seed = System.nanoTime();
 
-		final String firstBest = tryWithSeed(seed);
-		final String secondBest = tryWithSeed(seed);
+		final int firstBest = tryWithSeed(seed);
+		final int secondBest = tryWithSeed(seed);
 
-		assertEquals(firstBest, secondBest);
+		assertEquals(
+				firstBest,
+				secondBest,
+				() -> String.format(
+						"Running the Serial Genetic Algorithm twice with the same seed (0x%016xL) was expected to give the same result but in the first run the best result was the %d-th while in the second was the %d-th.",
+						seed, firstBest, secondBest));
 	}
 }

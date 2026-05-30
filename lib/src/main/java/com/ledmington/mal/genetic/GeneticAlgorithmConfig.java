@@ -44,7 +44,7 @@ public record GeneticAlgorithmConfig<X>(
 		return new GeneticAlgorithmConfigBuilder<>();
 	}
 
-	private static int assertPopulationSizeIsValid(int pop) {
+	private static int assertPopulationSizeIsValid(final int pop) {
 		final int minimumPopulation = 2;
 		if (pop < minimumPopulation) {
 			throw new IllegalArgumentException(
@@ -53,7 +53,7 @@ public record GeneticAlgorithmConfig<X>(
 		return pop;
 	}
 
-	private static int assertMaxGenerationsIsValid(int generations) {
+	private static int assertMaxGenerationsIsValid(final int generations) {
 		if (generations < 0) {
 			throw new IllegalArgumentException(
 					String.format("Invalid max generations: needs to be >= 0 but was %,d", generations));
@@ -61,15 +61,7 @@ public record GeneticAlgorithmConfig<X>(
 		return generations;
 	}
 
-	private static long assertMaxSecondsIsValid(long maxSeconds) {
-		if (maxSeconds < 0) {
-			throw new IllegalArgumentException(
-					String.format("Invalid max seconds: needs to be >= 0 but was %,d", maxSeconds));
-		}
-		return maxSeconds;
-	}
-
-	private static double assertSurvivalRateIsValid(double rate) {
+	private static double assertSurvivalRateIsValid(final double rate) {
 		if (rate <= 0.0 || rate >= 1.0) {
 			throw new IllegalArgumentException(
 					String.format("Invalid survival rate: needs to be > 0 and < 1 but was %f", rate));
@@ -77,7 +69,7 @@ public record GeneticAlgorithmConfig<X>(
 		return rate;
 	}
 
-	private static double assertCrossoverRateIsValid(double rate) {
+	private static double assertCrossoverRateIsValid(final double rate) {
 		if (rate <= 0.0 || rate >= 1.0) {
 			throw new IllegalArgumentException(
 					String.format("Invalid crossover rate: needs to be > 0 and < 1 but was %f", rate));
@@ -85,7 +77,7 @@ public record GeneticAlgorithmConfig<X>(
 		return rate;
 	}
 
-	private static double assertMutationRateIsValid(double rate) {
+	private static double assertMutationRateIsValid(final double rate) {
 		if (rate <= 0.0 || rate >= 1.0) {
 			throw new IllegalArgumentException(
 					String.format("Invalid mutation rate: needs to be > 0 and < 1 but was %f", rate));
@@ -110,31 +102,31 @@ public record GeneticAlgorithmConfig<X>(
 		private int maxGenerations = Integer.MAX_VALUE;
 		private Predicate<X> stopCriterion = x -> false;
 
-		public GeneticAlgorithmConfigBuilder<X> populationSize(int pop) {
+		public GeneticAlgorithmConfigBuilder<X> populationSize(final int pop) {
 			assertPopulationSizeIsValid(pop);
 			populationSize = pop;
 			return this;
 		}
 
-		public GeneticAlgorithmConfigBuilder<X> survivalRate(double rate) {
+		public GeneticAlgorithmConfigBuilder<X> survivalRate(final double rate) {
 			assertSurvivalRateIsValid(rate);
 			survivalRate = rate;
 			return this;
 		}
 
-		public GeneticAlgorithmConfigBuilder<X> crossoverRate(double rate) {
+		public GeneticAlgorithmConfigBuilder<X> crossoverRate(final double rate) {
 			assertCrossoverRateIsValid(rate);
 			crossoverRate = rate;
 			return this;
 		}
 
-		public GeneticAlgorithmConfigBuilder<X> mutationRate(double rate) {
+		public GeneticAlgorithmConfigBuilder<X> mutationRate(final double rate) {
 			assertMutationRateIsValid(rate);
 			mutationRate = rate;
 			return this;
 		}
 
-		public GeneticAlgorithmConfigBuilder<X> maxGenerations(int generations) {
+		public GeneticAlgorithmConfigBuilder<X> maxGenerations(final int generations) {
 			assertMaxGenerationsIsValid(generations);
 			maxGenerations = generations;
 			return this;
@@ -216,18 +208,18 @@ public record GeneticAlgorithmConfig<X>(
 	}
 
 	public GeneticAlgorithmConfig(
-			int populationSize,
-			double survivalRate,
-			double crossoverRate,
-			double mutationRate,
-			Supplier<X> creation,
-			BiFunction<X, X, X> crossoverOperator,
-			Function<X, X> mutationOperator,
-			Function<X, Double> fitnessFunction,
-			Comparator<Double> scoreComparator,
-			Set<X> firstGeneration,
-			int maxGenerations,
-			Predicate<X> stopCriterion) {
+			final int populationSize,
+			final double survivalRate,
+			final double crossoverRate,
+			final double mutationRate,
+			final Supplier<X> creation,
+			final BiFunction<X, X, X> crossoverOperator,
+			final Function<X, X> mutationOperator,
+			final Function<X, Double> fitnessFunction,
+			final Comparator<Double> scoreComparator,
+			final Set<X> firstGeneration,
+			final int maxGenerations,
+			final Predicate<X> stopCriterion) {
 		this.populationSize = assertPopulationSizeIsValid(populationSize);
 		this.survivalRate = assertSurvivalRateIsValid(survivalRate);
 		this.crossoverRate = assertCrossoverRateIsValid(crossoverRate);

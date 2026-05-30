@@ -65,7 +65,7 @@ public final class SimulatedAnnealing<X> {
 		double nextEnergy;
 
 		for (int k = 0; k < maxIterations; k++) {
-			final double temperature = 1.0 - ((double) (k + 1) / (double) maxIterations);
+			final double temperature = 1.0 - ((k + 1) / (double) maxIterations);
 
 			next = generateRandomNeighbor.apply(current);
 			nextEnergy = fitness.apply(next);

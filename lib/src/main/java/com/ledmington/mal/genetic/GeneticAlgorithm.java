@@ -19,7 +19,7 @@ package com.ledmington.mal.genetic;
 
 public interface GeneticAlgorithm<X> {
 
-	void setState(final GeneticAlgorithmConfig<X> config);
+	void setState(GeneticAlgorithmConfig<X> config);
 
 	GeneticAlgorithmState<X> getState();
 

@@ -70,7 +70,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 				while (!terminated) {
 					terminated = executor.awaitTermination(1, TimeUnit.HOURS);
 				}
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				throw new RuntimeException(e);
 			}
 		}));
@@ -80,13 +80,14 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		tasks.forEach(x -> {
 			try {
 				x.get();
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (final InterruptedException | ExecutionException e) {
 				throw new RuntimeException(e);
 			}
 		});
 		tasks.clear();
 	}
 
+	@Override
 	public void setState(final GeneticAlgorithmConfig<X> config) {
 		this.config = config;
 		population = new ArrayList<>(config.populationSize());
@@ -104,6 +105,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		}
 	}
 
+	@Override
 	protected void initialCreation() {
 		int i = 0;
 		for (final X obj : config.firstGeneration()) {
@@ -118,6 +120,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		waitAll(tasks);
 	}
 
+	@Override
 	protected void computeScores() {
 		for (final X x : population) {
 			if (!cachedScores.containsKey(x)) {
@@ -129,6 +132,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		waitAll(tasks);
 	}
 
+	@Override
 	protected void elitism() {
 		if (bestOfAllTime.isEmpty()) {
 			// the first time compute the last N best solutions from the global
@@ -149,7 +153,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 					.distinct()
 					.sorted(cachedScoresComparator)
 					.limit(survivingPopulation)
-					.forEach(x -> bestOfAllTime.add(x));
+					.forEach(bestOfAllTime::add);
 
 			final List<X> tmp = bestOfAllTime.stream()
 					.sorted(cachedScoresComparator)
@@ -163,14 +167,15 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 					.sorted(cachedScoresComparator)
 					.toList()
 					.subList(survivingPopulation, bestOfAllTime.size())
-					.forEach(x -> bestOfAllTime.remove(x));
+					.forEach(bestOfAllTime::remove);
 		}
 	}
 
+	@Override
 	protected int performCrossovers() {
 		int crossovers = 0;
 		nextGenerationSize = new AtomicInteger(survivingPopulation);
-		final Supplier<X> weightedRandom = Utils.weightedChoose(population, x -> cachedScores.get(x), rng);
+		final Supplier<X> weightedRandom = Utils.weightedChoose(population, cachedScores::get, rng);
 
 		for (int i = 0; nextGenerationSize.get() < config.populationSize() && i < config.populationSize(); i++) {
 			if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
@@ -194,6 +199,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		return crossovers;
 	}
 
+	@Override
 	protected int performMutations() {
 		int mutations = 0;
 
@@ -211,7 +217,8 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		return mutations;
 	}
 
-	protected void addRandomCreations(int randomCreations) {
+	@Override
+	protected void addRandomCreations(final int randomCreations) {
 		for (int i = 0; i < randomCreations; i++) {
 			tasks.add(executor.submit(() -> nextGeneration.set(
 					nextGenerationSize.getAndIncrement(), config.creation().get())));
@@ -220,6 +227,7 @@ public final class ParallelGeneticAlgorithm<X> extends SerialGeneticAlgorithm<X>
 		waitAll(tasks);
 	}
 
+	@Override
 	protected void endGeneration() {
 		Collections.fill(nextGeneration, null);
 	}

@@ -17,6 +17,7 @@
  */
 package com.ledmington.mal.patternsearch;
 
+@FunctionalInterface
 public interface TriFunction<X, Y, Z, W> {
-	W apply(final X x, final Y y, final Z z);
+	W apply(X x, Y y, Z z);
 }

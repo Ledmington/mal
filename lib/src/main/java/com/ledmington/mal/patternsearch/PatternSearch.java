@@ -17,7 +17,9 @@
  */
 package com.ledmington.mal.patternsearch;
 
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface PatternSearch<X> {
+
 	static <X> PatternSearchBuilder<X> builder() {
 		return new PatternSearchBuilder<>();
 	}

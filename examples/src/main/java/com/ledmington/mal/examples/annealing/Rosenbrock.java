@@ -35,7 +35,7 @@ public final class Rosenbrock {
 			this.x = x;
 		}
 
-		double get(final int idx) {
+		/* default */ double get(final int idx) {
 			return x[idx];
 		}
 

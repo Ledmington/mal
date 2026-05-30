@@ -58,6 +58,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 		this.rng = Objects.requireNonNull(rng);
 	}
 
+	@Override
 	public GeneticAlgorithmState<X> getState() {
 		// return a new State with immutable view of the data
 		return new GeneticAlgorithmState<>(
@@ -69,12 +70,13 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 				randomCreations);
 	}
 
+	@Override
 	public void setState(final GeneticAlgorithmConfig<X> config) {
 		this.config = config;
 		population = new ArrayList<>(config.populationSize());
 		nextGeneration = new ArrayList<>(config.populationSize());
 		cachedScores = new HashMap<>(config.populationSize(), 1.0f);
-		survivingPopulation = (int) ((double) config.populationSize() * config.survivalRate());
+		survivingPopulation = (int) (config.populationSize() * config.survivalRate());
 		bestOfAllTime = new LinkedHashSet<>(survivingPopulation * 2, 1.0f);
 		cachedScoresComparator = (a, b) -> config.scoreComparator().compare(cachedScores.get(a), cachedScores.get(b));
 	}
@@ -113,7 +115,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 					.distinct()
 					.sorted(cachedScoresComparator)
 					.limit(survivingPopulation)
-					.forEach(x -> bestOfAllTime.add(x));
+					.forEach(bestOfAllTime::add);
 			if (bestOfAllTime.size() < survivingPopulation) {
 				throw new AssertionError(String.format(
 						"Wrong size: was %,d but should have been at least %,d",
@@ -123,7 +125,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 			bestOfAllTime.stream()
 					.sorted(cachedScoresComparator)
 					.limit(survivingPopulation)
-					.forEach(x -> nextGeneration.add(x));
+					.forEach(nextGeneration::add);
 
 			if (bestOfAllTime.size() < survivingPopulation) {
 				throw new AssertionError(String.format(
@@ -135,7 +137,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 					.sorted(cachedScoresComparator)
 					.toList()
 					.subList(survivingPopulation, bestOfAllTime.size())
-					.forEach(x -> bestOfAllTime.remove(x));
+					.forEach(bestOfAllTime::remove);
 
 			if (bestOfAllTime.size() < survivingPopulation) {
 				throw new AssertionError(String.format(
@@ -147,7 +149,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 
 	protected int performCrossovers() {
 		int c = 0;
-		final Supplier<X> weightedRandom = Utils.weightedChoose(population, x -> cachedScores.get(x), rng);
+		final Supplier<X> weightedRandom = Utils.weightedChoose(population, cachedScores::get, rng);
 
 		for (int i = 0; nextGeneration.size() < config.populationSize() && i < config.populationSize(); i++) {
 			if (rng.nextDouble(0.0, 1.0) < config.crossoverRate()) {
@@ -178,7 +180,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 		return m;
 	}
 
-	protected void addRandomCreations(int randomCreations) {
+	protected void addRandomCreations(final int randomCreations) {
 		for (int i = 0; i < randomCreations; i++) {
 			nextGeneration.add(config.creation().get());
 		}
@@ -203,6 +205,7 @@ public class SerialGeneticAlgorithm<X> implements GeneticAlgorithm<X> {
 		return generation < config.maxGenerations() && population.stream().noneMatch(config.stopCriterion());
 	}
 
+	@Override
 	public void run() {
 		generation = 0;
 		initialCreation();

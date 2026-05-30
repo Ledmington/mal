@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -47,46 +49,56 @@ public abstract class GATest {
 	// A Supplier that counts the number of times it has been invoked
 	/* default */ static class CountingSupplier implements Supplier<String> {
 
+		private final Lock mutex = new ReentrantLock();
 		private int count = 0;
 
 		@Override
-		public synchronized String get() {
+		public String get() {
+			this.mutex.lock();
 			count++;
+			this.mutex.unlock();
 			return String.valueOf(count);
 		}
 
-		public int getCount() {
+		/* default */ int getCount() {
 			return count;
 		}
 	}
 
 	// A Mutator that counts the number of times it has been invoked
 	/* default */ static class CountingMutator implements Function<String, String> {
+
+		private final Lock mutex = new ReentrantLock();
 		private int count = 0;
 
 		@Override
 		public String apply(final String in) {
-			synchronized (this) {
-				count++;
-			}
+			this.mutex.lock();
+			count++;
+			this.mutex.unlock();
 			return in;
 		}
 
-		public int getCount() {
+		/* default */ int getCount() {
 			return count;
 		}
 	}
 
 	// A Crossover operator that counts the number of times it has been invoked
 	/* default */ static class CountingCrossoverOperator implements BiFunction<String, String, String> {
+
+		private final Lock mutex = new ReentrantLock();
 		private int count = 0;
 
-		public synchronized String apply(final String first, final String second) {
+		@Override
+		public String apply(final String first, final String second) {
+			this.mutex.lock();
 			count++;
+			this.mutex.unlock();
 			return first;
 		}
 
-		public int getCount() {
+		/* default */ int getCount() {
 			return count;
 		}
 	}
@@ -94,17 +106,23 @@ public abstract class GATest {
 	@ParameterizedTest
 	@ValueSource(ints = {10, 20, 30, 40, 50, 60, 70, 80, 90})
 	void zeroGenerationsMeansOnlyCreation(final int populationSize) {
-		final CountingSupplier cs = new CountingSupplier();
+		final GATest.CountingSupplier cs = new CountingSupplier();
 		ga.setState(GeneticAlgorithmConfig.<String>builder()
 				.populationSize(populationSize)
 				.maxGenerations(0)
-				.crossover((a, b) -> b)
+				.crossover((_, b) -> b)
 				.mutation(Function.identity())
-				.maximize(s -> 0.0)
+				.maximize(_ -> 0.0)
 				.creation(cs)
 				.build());
 		ga.run();
-		assertEquals(populationSize, cs.getCount());
+		final int actualPopulation = cs.getCount();
+		assertEquals(
+				populationSize,
+				actualPopulation,
+				() -> String.format(
+						"Expected a Genetic Algorithm with 0 generations to create %,d individuals, but it created %,d.",
+						populationSize, actualPopulation));
 	}
 
 	@ParameterizedTest
@@ -133,9 +151,32 @@ public abstract class GATest {
 				.build());
 		ga.run();
 
-		assertEquals(0, cco.getCount()); // zero crossovers
-		assertEquals(0, cm.getCount()); // zero mutations
-		assertEquals(maxPopulation * (generations + 1), cs.getCount()); // only random creations
+		final int expectedCrossovers = 0;
+		final int actualCrossovers = cco.getCount();
+		assertEquals(
+				expectedCrossovers,
+				actualCrossovers,
+				() -> String.format(
+						"Expected a Genetic Algorithm with (effectively) zero rates to have %,d crossovers, but it had %,d crossovers.",
+						expectedCrossovers, actualCrossovers));
+
+		final int expectedMutations = 0;
+		final int actualMutations = cm.getCount();
+		assertEquals(
+				expectedMutations,
+				actualMutations,
+				() -> String.format(
+						"Expected a Genetic Algorithm with (effectively) zero rates to have %,d mutations, but it had %,d mutations.",
+						expectedMutations, actualMutations));
+
+		final int expectedCreations = maxPopulation * (generations + 1);
+		final int actualCreations = cs.getCount();
+		assertEquals(
+				expectedCreations,
+				actualCreations,
+				() -> String.format(
+						"Expected a Genetic Algorithm with (effectively) zero rates to have %,d creations, but it had %,d creations.",
+						expectedCreations, actualCreations));
 	}
 
 	@Test
